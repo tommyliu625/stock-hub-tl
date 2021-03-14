@@ -21,8 +21,8 @@ class StockNews extends React.Component {
   }
   render() {
     const {stocknews} = this.props
-    const {finviz} = stocknews
     let stocksites = Object.keys(this.props.stocknews)
+    let {selectedCategory} = this.state
     console.log(stocksites)
     return (
       <div>
@@ -52,13 +52,12 @@ class StockNews extends React.Component {
               })}
           </div>
         </form>
-        {stocknews[this.state.selectedCategory].length &&
-        this.state.selectedCategory === 'finviz'
-          ? stocknews[this.state.selectedCategory].map((links) => {
+        {stocknews[selectedCategory].length && selectedCategory === 'finviz'
+          ? stocknews[selectedCategory].map((links) => {
               return <FinvizComponent links={links} />
             })
-          : this.state.selectedCategory === 'WSJ'
-          ? stocknews[this.state.selectedCategory].map((links) => {
+          : selectedCategory === 'WSJ'
+          ? stocknews[selectedCategory].map((links) => {
               return <WSJComponent links={links} />
             })
           : null}

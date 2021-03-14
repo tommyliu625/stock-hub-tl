@@ -71,6 +71,11 @@ ul {
   margin-bottom: 2px;
 }
 
+.wsj-detail-div,
+.finviz-detail-div {
+  border: black solid 0.5px;
+}
+
 /* .media-list {
   overflow-y: scroll;
 } */

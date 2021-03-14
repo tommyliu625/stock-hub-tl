@@ -23,10 +23,10 @@ const ChartComponent = (props) => {
       let dateTime = data.hasOwnProperty('dateTime') ? data.dateTime : data.date
       return {
         date: new Date(parseDate(dateTime).getTime()),
-        open: data.open,
-        high: data.high,
-        close: data.close,
-        low: data.low,
+        open: +data.open,
+        high: +data.high,
+        close: +data.close,
+        low: +data.low,
       }
     })
     // console.log(prices, info['4. Interval'])

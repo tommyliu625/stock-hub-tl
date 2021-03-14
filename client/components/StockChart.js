@@ -39,7 +39,7 @@ let StockChart = (props) => {
       data={data}
       xAccessor={xAccessor}
       xExtents={xExtents}
-      xScale={d3.scaleTime().domain([start, end])}
+      xScale={scaleTime()}
       // xScale={d3.scaleTime().domain(data.map(xAccessor))}
       // displayXAccessor={xAccessor(data)}
     >
