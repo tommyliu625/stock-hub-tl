@@ -2,13 +2,13 @@ import React from 'react'
 import {connect} from 'react-redux'
 import SearchBar from './SearchBar'
 import ChartComponent from './ChartComponent'
+import StockNewsOnChart from './StockNewsOnChart'
 
 const StockChartComponent = (props) => {
   const {stock} = props
-  console.log('before render', stock)
   return (
     <React.Fragment>
-      <h1>Welcome to my AWP Project - Stock Searcher</h1>
+      <h1>Welcome to my AWP/Stackathon Project - Stock Searcher</h1>
       <SearchBar />
       <div id="title-price-div">
         {stock.company && <span>{stock.company.name}</span>}
@@ -22,6 +22,7 @@ const StockChartComponent = (props) => {
         )}
       </div>
       <ChartComponent />
+      {stock.company && <StockNewsOnChart stock={stock} />}
     </React.Fragment>
   )
 }

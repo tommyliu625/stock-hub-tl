@@ -22,7 +22,6 @@ let periodToTimeIntervalMap = {
 }
 
 let StockChart = (props) => {
-  console.log(d3)
   let {type, width, data, ratio, interval} = props
   const xAccessor = (d) => d.date
   const start = xAccessor(data[0])
