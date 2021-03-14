@@ -5,11 +5,16 @@ router.get('/', (req, res, next) => {
   res.send('hello from api route')
 })
 
+// route: /api
 router.use('/quote', require('./quote'))
-router.use('/historical-price-intraday', require('./historical-price-intraday'))
-router.use('/historical-price-daily', require('./historical-price-daily'))
-router.use('/historical-price-weekly', require('./historical-price-weekly'))
-router.use('/historical-price-monthly', require('./historical-price-monthly'))
+router.use('/intraday-price', require('./intraday-price'))
+router.use('/daily-price', require('./daily-price'))
+router.use('/weekly-price', require('./weekly-price'))
+router.use('/monthly-price', require('./monthly-price'))
+router.use('/stocks', require('./stocks'))
+router.use('/testApi', require('./testApi'))
+router.use('/stocknews', require('./stocknews'))
+router.use('/messages', require('./messages'))
 
 router.use((req, res, next) => {
   const error = new Error('Not Found')

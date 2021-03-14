@@ -3,6 +3,16 @@ const path = require('path')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
 const app = express()
+const db = require('./db/db')
+const PORT = process.env.PORT || 1000
+const server = app.listen(PORT, () =>
+  console.log(`Feeling chatty on port ${PORT}`)
+)
+const io = require('socket.io')(server)
+
+// handle sockets
+require('./socket')(io)
+db.sync().then(() => console.log('Database is synced'))
 
 // middleware
 // logging middleware
@@ -11,6 +21,7 @@ app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 // static middleware
+app.use(express.static(path.join(__dirname, '..', 'node_modules')))
 app.use(express.static(path.join(__dirname, '../public')))
 
 app.use('/api', require('./api'))

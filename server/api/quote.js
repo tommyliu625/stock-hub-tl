@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const iex = require('iexcloud_api_wrapper')
+// const iex = require('iexcloud_api_wrapper')
 
 router.get('/:ticker', async (req, res, next) => {
   try {

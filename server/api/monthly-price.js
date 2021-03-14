@@ -3,16 +3,17 @@ const router = require('express').Router()
 const alpha = require('alphavantage')({key: 'SMZ4S084COH57OMS'})
 
 // api/historical-price-weekly/1min/:ticker
-router.get('/:ticker', async (req, res, next) => {
+router.post('/:ticker', async (req, res, next) => {
   try {
-    const data = await alpha.data.weekly(req.params.ticker, 'full', 'json')
+    let {timePeriodSelection, interval, ticker} = req.body
+    const data = await alpha.data.monthly(req.params.ticker, 'full', 'json')
     const companyData = await alpha.fundamental.company_overview(
       req.params.ticker
     )
-    const timeSeries = data['Weekly Time Series']
+    const timeSeries = data['Monthly Time Series']
     const timeSeriesArr = Object.keys(timeSeries).map((time) => {
       let objInfo = {
-        week: time,
+        date: time,
         open: timeSeries[time]['1. open'],
         high: timeSeries[time]['2. high'],
         low: timeSeries[time]['3. low'],
@@ -21,9 +22,17 @@ router.get('/:ticker', async (req, res, next) => {
       }
       return objInfo
     })
+    let dataPointNum
+    if (timePeriodSelection === '5year') dataPointNum = 60
+    let timeSeriesData = dataPointNum
+      ? timeSeriesArr.filter((info, i) => {
+          return i <= dataPointNum
+        })
+      : timeSeriesArr
+    data['Meta Data']['4. Interval'] = 'monthly'
     const stockInfo = {
-      info: companyData,
-      stockPrices: timeSeriesArr,
+      info: data['Meta Data'],
+      stockPrices: timeSeriesData,
     }
     res.send(stockInfo)
   } catch (err) {

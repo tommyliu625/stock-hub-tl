@@ -1,77 +1,48 @@
 // import Chart from 'chart.js'
 import React, {useState, useEffect} from 'react'
 // import {Candlestick} from 'react-chartjs-2'
-import {dummyDaily} from '../dummyData'
-import {TypeChooser} from 'react-stockcharts/lib/helper'
+import {dummyAAPL1YearDaily, dummyAMZN5yearWeekly} from '../dummyData'
 import StockChart from './StockChart'
 import {timeParse} from 'd3-time-format'
-const {stockPrices} = dummyDaily
-let parseDate = timeParse('%Y-%m-%d')
-const prices = stockPrices.reverse().map((data, i) => {
-  return {
-    date: new Date(parseDate(data.time).getTime()),
-    open: +data.open,
-    high: +data.high,
-    close: +data.close,
-    low: +data.low,
-  }
-})
+import {connect} from 'react-redux'
 
-const ChartComponent = () => {
-  const [chartsToDisplay, setChartsToDisplay] = useState([])
-  const getData = async () => {
-    const charts = []
-    await charts.push(<StockChart key={1} data={prices} />)
-    setChartsToDisplay(charts)
+// const {stockPrices, info} = dummyAAPL1YearDaily
+
+const ChartComponent = (props) => {
+  // console.log('props: ', props)
+  if (props.stock.stockPrices) {
+    const {stockPrices, info} = props.stock
+    // console.log('stockPrices', stockPrices)
+    // console.log('info', info)
+    let parseDate = stockPrices[0].hasOwnProperty('dateTime')
+      ? timeParse('%Y-%m-%d %H:%M:%S')
+      : timeParse('%Y-%m-%d')
+    let reversePrices = [...stockPrices].reverse()
+    // console.log('reversePrices', reversePrices)
+    const prices = reversePrices.map((data, i) => {
+      let dateTime = data.hasOwnProperty('dateTime') ? data.dateTime : data.date
+      return {
+        date: new Date(parseDate(dateTime).getTime()),
+        open: data.open,
+        high: data.high,
+        close: data.close,
+        low: data.low,
+      }
+    })
+    // console.log(prices, info['4. Interval'])
+    return (
+      <div>
+        <StockChart key={1} data={prices} interval={info['4. Interval']} />
+      </div>
+    )
+  } else {
+    return null
   }
-  useEffect(() => {
-    getData()
-  }, [])
-  return <div>{chartsToDisplay}</div>
+}
+const mapState = (state) => {
+  return {
+    stock: state.singleStock,
+  }
 }
 
-// class ChartComponent extends React.Component {
-//   componentDidMount() {
-//     let parseDate = timeParse('%Y-%m-%d')
-//     const prices = stockPrices.reverse().map((data, i) => {
-//       return {
-//         date: new Date(parseDate(data.time).getTime()),
-//         open: +data.open,
-//         high: +data.high,
-//         close: +data.close,
-//         low: +data.low,
-//       }
-//     })
-//     this.setState({
-//       data: prices,
-//     })
-//   }
-//   render() {
-//     if (this.state == null) {
-//       return <div>Loading...</div>
-//     }
-//     return (
-//       <TypeChooser>
-//         {(type) => <StockChart type={type} data={this.state.data} />}
-//       </TypeChooser>
-//     )
-//   }
-// }
-
-// class StockChart extends React.Component {
-//   componentDidMount() {
-//     this.setState({
-//       data: stockPrices,
-//     })
-//   }
-//   render() {
-//     return (
-//       <div>
-//         <h1>Bar Chart</h1>
-//         <Candlestick data={this.state.data} options={options} />
-//       </div>
-//     )
-//   }
-// }
-
-export default ChartComponent
+export default connect(mapState, null)(ChartComponent)
