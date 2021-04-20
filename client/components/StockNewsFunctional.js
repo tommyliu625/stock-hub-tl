@@ -21,16 +21,25 @@ class StockNews extends React.Component {
   componentDidMount() {
     this.props.fetchStocks()
   }
-  handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!this.state.hasSubmitted) {
-      this.setState({...this.state, hasSubmitted: true})
-    } else {
+  handleSubmit = (e) => {
+    if (this.state.hasSubmitted) {
+      e.preventDefault()
       this.props.resetTV()
       this.props.resetBloomberg()
+      this.props.getAllNews(e.target.ticker.value)
+      // this.props.getFinviz(e.target.ticker.value)
+      // this.props.getWSJ(e.target.ticker.value)
+      // this.props.getTradingView(e.target.ticker.value)
+      // this.props.getBloomberg(e.target.ticker.value)
+    } else {
+      this.setState({...this.state, hasSubmitted: true})
+      e.preventDefault()
+      this.props.getAllNews(e.target.ticker.value)
+      // this.props.getFinviz(e.target.ticker.value)
+      // this.props.getWSJ(e.target.ticker.value)
+      // this.props.getTradingView(e.target.ticker.value)
+      // this.props.getBloomberg(e.target.ticker.value)
     }
-    const errorCatch = await this.props.getAllNews(e.target.ticker.value)
-    console.log('errorCatch', errorCatch)
   }
   changeCategory = (e) => {
     e.preventDefault()
@@ -64,6 +73,7 @@ class StockNews extends React.Component {
     let selectedNewsJSX
     let {selectedCategory, hasSubmitted} = this.state
     if (selectedCategory === 'finviz' && stocknews.finviz.length) {
+      console.log('inside finviz if statement')
       selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
         return <FinvizComponent links={links} />
       })

@@ -4,6 +4,7 @@ import {withRouter, Route, Switch} from 'react-router-dom'
 import StockChartComponent from './components/StockChartComponent'
 import Chatroom from './components/Chatroom'
 import StockNews from './components/StockNews'
+import StockNewsFunctional from './components/StockNewsFunctional'
 
 class Routes extends React.Component {
   render() {

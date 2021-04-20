@@ -1,6 +1,10 @@
 const router = require('express').Router()
 const axios = require('axios')
 const cheerio = require('cheerio')
+const puppeteer = require('puppeteer')
+const poll = require('promise-poller').default
+const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
+const {captchaAPI} = require('../../secrets')
 
 router.get('/finviz/:ticker', async (req, res, next) => {
   try {
@@ -15,8 +19,8 @@ router.get('/finviz/:ticker', async (req, res, next) => {
       obj.url = $(el).find('.tab-link-news').attr('href')
       dataArr.push(obj)
     })
-
-    res.json(dataArr)
+    // res.status(404).send('Error grabbing finviz data')
+    res.send(dataArr)
   } catch (err) {
     next(err)
   }
@@ -54,42 +58,225 @@ router.get('/WSJ/:ticker', async (req, res, next) => {
       dataArr = await WSJHelper(req.params.ticker)
       counter++
     }
+    // res.status(404).send('Error grabbing WSJ data')
     res.json(dataArr)
   } catch (err) {
     next(err)
   }
 })
 
+const chromeOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: true,
+  slowMo: 0,
+  defaultViewport: null,
+}
+
+// eslint-disable-next-line max-statements
 router.get('/tradingview/:ticker', async (req, res, next) => {
   try {
-    const {data} = await axios.get(
-      `https://www.tradingview.com/symbols/${req.params.ticker}/`
+    const exchange = allStocks.find((stock) => {
+      return stock.Symbol === req.params.ticker.toUpperCase()
+    }).exchange
+    let ticker = req.params.ticker
+    const browser = await puppeteer.launch(chromeOptions)
+    const page = await browser.newPage()
+    await page.goto('https://www.tradingview.com/#signin')
+    page.setDefaultNavigationTimeout(10000)
+    await page.click('.i-clearfix')
+    await page.$eval(
+      'input[name=username]',
+      (el) => (el.value = 'bemorechillscript@gmail.com')
     )
-    const dataArr = []
-    const $ = cheerio.load(data)
-
-    // $('.tv-widget-news__header span').each((i, el) => {
-    // let obj = {}
-    // let dateTime = $(el)
-    //   .find('.tv-widget-news__header .tv-widget-news__date')
-    //   .text()
-    // console.log('i', i)
-    // dataArr.push(i, el)
-    // dataArr.push(dateTime)
-    // let element = $(el).find('.tv-widget-news__date').html()
-    // dataArr.push(element)
-
-    // console.log(dateTime)
-    // dateTime = $(el).find('tv-widget-news__date').text()
-    // obj.dateTime = $(el).find('tv-widget-news__date').text()
-    // obj.newSource = $(el).find('.tv-widget-news__source').text()
-    // obj.description = $(el).find('.tv-widget-news__description-text').text()
-    // dataArr.push(obj)
+    await page.$eval('input[name=password]', (el) => (el.value = 'whothem4n'))
+    await page.click('.tv-button__loader')
+    await page.waitFor(850)
+    await page.goto(
+      `https://www.tradingview.com/symbols/${exchange}-${ticker}/`
+      // {waitFor: 'networkidle2'}
+    )
+    // await page.$eval(
+    //   'input[name=query]',
+    //   (el, ticker) => {
+    //     el.value = ticker
+    //     return el.value
+    //   },
+    //   ticker
+    // )
+    // await page.waitForNavigation({
+    //   waitUntil: 'networkidle2',
     // })
-    res.json(data)
+    // await page.keyboard.press('Enter')
+    let tradingViewInfo = []
+    // await page.waitForNavigation({
+    //   waitUntil: 'networkidle2',
+    // })
+    await page.waitForSelector('.news-item--card-14OMzC2A')
+    const articles = await page.$$('.js-news-widget-content > div')
+    console.log(articles.length)
+    for (let i = 2; i < articles.length; i++) {
+      // await page.waitForSelector(`.js-news-widget-content :nth-child(${i + 1})`)
+      await page.click(`.js-news-widget-content div:nth-of-type(${i + 1})`)
+      console.log(i)
+      // await page.waitForSelector('.dialog-3Q8J4Pu0')
+      await page.waitFor(25)
+      const timeDate = await page.$$('.container-WM_9Aksw span')
+      const body = await page.$$('.description-1q24HCdy span p')
+      const title = await page.$('.title-1q24HCdy')
+      let articleInfo = {}
+      for (const texts of timeDate) {
+        let spanText = await (
+          await texts.getProperty('textContent')
+        ).jsonValue()
+        articleInfo.timeDate = articleInfo.timeDate
+          ? articleInfo.timeDate + ' ' + spanText
+          : spanText + ' '
+      }
+      articleInfo.title = await (
+        await title.getProperty('textContent')
+      ).jsonValue()
+      for (const p of body) {
+        let bodyText = await (await p.getProperty('textContent')).jsonValue()
+        articleInfo.body = articleInfo.body
+          ? articleInfo.body + ' \n' + bodyText
+          : bodyText
+      }
+      tradingViewInfo.push(articleInfo)
+      await page.waitFor(25)
+      await page.keyboard.press('Escape')
+      console.log(articleInfo.timeDate)
+      console.log(articleInfo.title)
+      // await page.waitForNavigation({waitUntil: 'domcontentloaded'})
+    }
+    // await page.click('.js-user-dropdown')
+    // await page.click('.js-signout')
+    // await page.waitFor(50)
+    await page.screenshot({path: 'example.png'})
+    await browser.close()
+    res.send(tradingViewInfo)
   } catch (err) {
     next(err)
   }
 })
+
+const BloombergOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: true,
+  slowMo: 10,
+  defaultViewport: null,
+}
+
+// eslint-disable-next-line max-statements
+router.get('/bloomberg/:ticker', async (req, res, next) => {
+  try {
+    const browser = await puppeteer.launch(BloombergOptions)
+    const page = await browser.newPage()
+    page.setDefaultTimeout(10000)
+    await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
+    let currentUrl = page.url()
+    if (
+      currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
+    ) {
+      const sitekey = await page.$eval('.g-recaptcha', (element) =>
+        element.getAttribute('data-sitekey')
+      )
+      const requestId = await initiateCaptchaRequest(
+        captchaAPI,
+        currentUrl,
+        sitekey
+      )
+
+      let response = await pollForRequestResults(captchaAPI, requestId)
+
+      await page.$eval(
+        '#g-recaptcha-response',
+        // eslint-disable-next-line no-return-assign
+        (el, response) => (el.innerHTML = `${response}`),
+        response
+      )
+      await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
+    }
+    currentUrl = page.url()
+    let bloombergInfo = []
+    if (
+      currentUrl ===
+      `https://www.bloomberg.com/quote/${req.params.ticker.toUpperCase()}:US`
+    ) {
+      const articles = await page.$$('#right-rail .pressReleaseItem__e9aac8ef')
+      for (let i = 0; i < articles.length; i++) {
+        let obj = {}
+        let link = await articles[i].$eval('a', (a) => a.getAttribute('href'))
+        let headline = await articles[i].$eval(
+          '.headline__eb73356e',
+          (el) => el.innerHTML
+        )
+        let date = await articles[i].$eval(
+          '.updatedAt__3fe411c9',
+          (el) => el.innerHTML
+        )
+        obj.headline = headline
+        obj.link = link
+        obj.date = date
+        console.log(obj)
+        bloombergInfo.push(obj)
+      }
+    }
+    await page.screenshot({path: 'example.png'})
+    await browser.close()
+    if (bloombergInfo.length) {
+      res.send(bloombergInfo)
+    } else {
+      res.status(404).send({error: 'Unable to grab Bloomberg news data'})
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+async function initiateCaptchaRequest(apiKey, pageurl, sitekey) {
+  const formData = {
+    method: 'userrecaptcha',
+    googlekey: sitekey,
+    key: captchaAPI,
+    pageurl: pageurl,
+    json: 1,
+  }
+  console.log('Submitting solution request to 2captcha for', pageurl)
+  const response = await axios.post('http://2captcha.com/in.php', formData)
+  return response.data.request
+}
+
+const timeout = (millis) =>
+  new Promise((resolve) => setTimeout(resolve, millis))
+
+async function pollForRequestResults(
+  key,
+  id,
+  retries = 45,
+  interval = 1000,
+  delay = 1000
+) {
+  console.log(`waiting for ${delay} milliseconds`)
+  await timeout(delay)
+  return poll({
+    taskFn: requestCaptchaResults(key, id),
+    interval,
+    retries,
+  })
+}
+
+function requestCaptchaResults(apiKey, requestId) {
+  const url = `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`
+  return async function () {
+    return new Promise(async function (resolve, reject) {
+      console.log('Polling for response...')
+      const {data} = await axios.get(url)
+      console.log(data)
+      if (data.status === 0) return reject(data.request)
+      resolve(data.request)
+    })
+  }
+}
 
 module.exports = router

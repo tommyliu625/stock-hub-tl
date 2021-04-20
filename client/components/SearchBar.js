@@ -1,11 +1,10 @@
 /* eslint-disable complexity */
 /* eslint-disable react/jsx-key */
 import React from 'react'
-import alphavantage from 'alphavantage'
 import {connect} from 'react-redux'
-import {dummyInfo, dummyPrices} from '../dummyData'
 import {fetchStocks} from '../store/stockListReducer'
 import {fetchStock, getCompany} from '../store/singleStockReducer'
+import {fetchFinvizNews, fetchWSJNews} from '../store/stocknewsReducer'
 
 class SearchBar extends React.Component {
   constructor() {
@@ -57,6 +56,8 @@ class SearchBar extends React.Component {
         return ticker.ticker === keyword.toUpperCase()
       })
       this.props.getCompany(selectedTicker)
+      this.props.getFinviz(selectedTicker.ticker)
+      this.props.getWSJ(selectedTicker.ticker)
     }
   }
   handleInputChange = async (e) => {
@@ -185,6 +186,8 @@ const mapDispatch = (dispatch) => {
     fetchStock: (stock) => dispatch(fetchStock(stock)),
     fetchStocks: () => dispatch(fetchStocks()),
     getCompany: (company) => dispatch(getCompany(company)),
+    getFinviz: (ticker) => dispatch(fetchFinvizNews(ticker)),
+    getWSJ: (ticker) => dispatch(fetchWSJNews(ticker)),
   }
 }
 

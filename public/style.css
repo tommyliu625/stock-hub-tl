@@ -72,7 +72,9 @@ ul {
 }
 
 .wsj-detail-div,
-.finviz-detail-div {
+.finviz-detail-div,
+.tradingview-detail-div,
+.bloomberg-detail-div {
   border: black solid 0.5px;
 }
 

@@ -9,10 +9,10 @@ class StockNews extends React.Component {
     super(props)
     this.state = {input: '', selectedCategory: 'finviz'}
   }
-  componentDidMount() {
-    this.props.getFinviz(this.props.stock.company.ticker)
-    this.props.getWSJ(this.props.stock.company.ticker)
-  }
+  // componentDidMount() {
+    //   this.props.getFinviz(this.props.stock.company.ticker)
+    //   this.props.getWSJ(this.props.stock.company.ticker)
+  // }
   changeCategory = (e) => {
     e.preventDefault()
     console.log(e.target.value)
@@ -22,7 +22,6 @@ class StockNews extends React.Component {
     const {stocknews} = this.props
     let stocksites = Object.keys(this.props.stocknews)
     let {selectedCategory} = this.state
-    console.log(stocksites)
     return (
       <div>
         <div>
@@ -59,7 +58,7 @@ class StockNews extends React.Component {
 const mapState = (state) => {
   return {
     stocknews: state.stocknews,
-    stock: state.singleStock,
+    // stock: state.singleStock,
   }
 }
 
