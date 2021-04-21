@@ -19,8 +19,11 @@ router.get('/finviz/:ticker', async (req, res, next) => {
       obj.url = $(el).find('.tab-link-news').attr('href')
       dataArr.push(obj)
     })
-    // res.status(404).send('Error grabbing finviz data')
-    res.send(dataArr)
+    if (dataArr.length) {
+      res.send(dataArr)
+    } else {
+      res.status(404).send({error: {finviz: 'Unable to fetch finviz data'}})
+    }
   } catch (err) {
     next(err)
   }
@@ -48,6 +51,14 @@ const WSJHelper = async (ticker) => {
     return date || url || details
   })
   return filterDataArr
+}
+
+const WSJOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: false,
+  slowMo: 10,
+  defaultViewport: null,
 }
 
 router.get('/WSJ/:ticker', async (req, res, next) => {
@@ -91,27 +102,11 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     )
     await page.$eval('input[name=password]', (el) => (el.value = 'whothem4n'))
     await page.click('.tv-button__loader')
-    await page.waitFor(850)
+    await page.waitForTimeout(850)
     await page.goto(
       `https://www.tradingview.com/symbols/${exchange}-${ticker}/`
-      // {waitFor: 'networkidle2'}
     )
-    // await page.$eval(
-    //   'input[name=query]',
-    //   (el, ticker) => {
-    //     el.value = ticker
-    //     return el.value
-    //   },
-    //   ticker
-    // )
-    // await page.waitForNavigation({
-    //   waitUntil: 'networkidle2',
-    // })
-    // await page.keyboard.press('Enter')
     let tradingViewInfo = []
-    // await page.waitForNavigation({
-    //   waitUntil: 'networkidle2',
-    // })
     await page.waitForSelector('.news-item--card-14OMzC2A')
     const articles = await page.$$('.js-news-widget-content > div')
     console.log(articles.length)
@@ -120,7 +115,7 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       await page.click(`.js-news-widget-content div:nth-of-type(${i + 1})`)
       console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
-      await page.waitFor(25)
+      await page.waitForTimeout(25)
       const timeDate = await page.$$('.container-WM_9Aksw span')
       const body = await page.$$('.description-1q24HCdy span p')
       const title = await page.$('.title-1q24HCdy')
@@ -143,15 +138,11 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
           : bodyText
       }
       tradingViewInfo.push(articleInfo)
-      await page.waitFor(25)
+      await page.waitForTimeout(25)
       await page.keyboard.press('Escape')
       console.log(articleInfo.timeDate)
       console.log(articleInfo.title)
-      // await page.waitForNavigation({waitUntil: 'domcontentloaded'})
     }
-    // await page.click('.js-user-dropdown')
-    // await page.click('.js-signout')
-    // await page.waitFor(50)
     await page.screenshot({path: 'example.png'})
     await browser.close()
     res.send(tradingViewInfo)
@@ -225,11 +216,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
-    if (bloombergInfo.length) {
-      res.send(bloombergInfo)
-    } else {
-      res.status(404).send({error: 'Unable to grab Bloomberg news data'})
-    }
+    res.send(bloombergInfo)
   } catch (err) {
     next(err)
   }

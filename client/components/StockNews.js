@@ -16,6 +16,7 @@ class StockNews extends React.Component {
       selectedCategory: 'finviz',
       searchBarFilter: [],
       hasSubmitted: false,
+      disabled: false,
     }
   }
   componentDidMount() {
@@ -23,14 +24,16 @@ class StockNews extends React.Component {
   }
   handleSubmit = async (e) => {
     e.preventDefault()
+    this.setState({...this.state, disable: true})
     if (!this.state.hasSubmitted) {
       this.setState({...this.state, hasSubmitted: true})
     } else {
       this.props.resetTV()
       this.props.resetBloomberg()
     }
-    const errorCatch = await this.props.getAllNews(e.target.ticker.value)
-    console.log('errorCatch', errorCatch)
+    const response = await this.props.getAllNews(e.target.ticker.value)
+    console.log(response)
+    this.setState({...this.state, disable: false})
   }
   changeCategory = (e) => {
     e.preventDefault()
@@ -62,17 +65,27 @@ class StockNews extends React.Component {
     const {stocknews} = this.props
     let stocksites = Object.keys(this.props.stocknews)
     let selectedNewsJSX
-    let {selectedCategory, hasSubmitted} = this.state
-    if (selectedCategory === 'finviz' && stocknews.finviz.length) {
-      selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
-        return <FinvizComponent links={links} />
-      })
+    let {selectedCategory, hasSubmitted, disable} = this.state
+    if (selectedCategory === 'finviz') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <FinvizComponent links={links} />
+        })
+      }
     } else if (selectedCategory === 'WSJ') {
-      selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
-        return <WSJComponent links={links} />
-      })
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <WSJComponent links={links} />
+        })
+      }
     } else if (selectedCategory === 'TradingView') {
-      if (!stocknews.TradingView.length && this.state.hasSubmitted) {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.TradingView.length && hasSubmitted) {
         selectedNewsJSX = (
           <div className="tradingview-detail-div">
             <div>
@@ -83,16 +96,13 @@ class StockNews extends React.Component {
         )
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((info) => {
-          return (
-            <TradingViewComponent
-              info={info}
-              hasSubmitted={this.state.hasSubmitted}
-            />
-          )
+          return <TradingViewComponent info={info} />
         })
       }
     } else if (selectedCategory === 'Bloomberg') {
-      if (!stocknews.Bloomberg.length && this.state.hasSubmitted) {
+      if (stocknews.Bloomberg.length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.Bloomberg.length && hasSubmitted) {
         selectedNewsJSX = (
           <div className="bloomberg-detail-div">
             <div>
@@ -109,7 +119,11 @@ class StockNews extends React.Component {
     }
     return (
       <div>
-        <form onSubmit={this.handleSubmit}>
+        <form
+          onSubmit={(e) => {
+            this.handleSubmit(e)
+          }}
+        >
           <input
             placeholder="select ticker"
             name="ticker"
@@ -132,7 +146,10 @@ class StockNews extends React.Component {
                 )
               })}
           </datalist>
-          <button type="submit">Submit</button>
+          <button type="submit" disabled={disable}>
+            Submit
+          </button>
+          {disable && <div>Button disabled while data is loading</div>}
           <div>
             {stocksites &&
               stocksites.map((value) => {

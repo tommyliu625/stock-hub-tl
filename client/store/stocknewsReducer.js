@@ -54,8 +54,10 @@ export const fetchFinvizNews = (ticker) => {
     try {
       const {data} = await axios.get(`/api/stocknews/finviz/${ticker}`)
       dispatch(setFinviz(data))
+      return {Successful: {finviz: 'Successfully received finviz data'}}
     } catch (err) {
-      console.log(err)
+      dispatch(setFinviz([`Unable to fetch finviz data for ${ticker}.`]))
+      return err.response.data
     }
   }
 }
@@ -65,8 +67,10 @@ export const fetchWSJNews = (ticker) => {
     try {
       const {data} = await axios.get(`/api/stocknews/WSJ/${ticker}`)
       dispatch(setWSJ(data))
+      return {Successful: {WSJ: 'Successfully received WSJ data'}}
     } catch (err) {
-      console.log(err)
+      dispatch(setWSJ([`Unable to fetch WSJ data for ${ticker}.`]))
+      return err.response.data
     }
   }
 }
@@ -76,8 +80,14 @@ export const fetchTradingViewNews = (ticker) => {
     try {
       const {data} = await axios.get(`/api/stocknews/tradingview/${ticker}`)
       dispatch(setTradingView(data))
+      return {
+        Successful: {TradingView: 'Successfully received TradingView data'},
+      }
     } catch (err) {
-      console.log(err)
+      dispatch(
+        setTradingView([`Unable to fetch TradingView data for ${ticker}.`])
+      )
+      return err.response.data
     }
   }
 }
@@ -87,8 +97,13 @@ export const fetchBloomberg = (ticker) => {
     try {
       const {data} = await axios.get(`/api/stocknews/bloomberg/${ticker}`)
       dispatch(setBloomberg(data))
+      return {
+        Successful: {Bloomberg: 'Successfully received Bloomberg data'},
+      }
     } catch (err) {
       console.log(err)
+      dispatch(setBloomberg([`Unable to fetch Bloomberg data for ${ticker}.`]))
+      return err.response.data
     }
   }
 }
@@ -96,31 +111,16 @@ export const fetchBloomberg = (ticker) => {
 export const getAllNews = (ticker) => {
   return async (dispatch) => {
     try {
-      const finvizFunction = async () => {
-        const {data} = await axios.get(`/api/stocknews/finviz/${ticker}`)
-        dispatch(setFinviz(data))
-      }
-      const WSJFunction = async () => {
-        const {data} = await axios.get(`/api/stocknews/WSJ/${ticker}`)
-        dispatch(setWSJ(data))
-      }
-      const tradingViewFunction = async () => {
-        const {data} = await axios.get(`/api/stocknews/tradingview/${ticker}`)
-        dispatch(setTradingView(data))
-      }
-      const bloombergFunction = async () => {
-        const {data} = await axios.get(`/api/stocknews/bloomberg/${ticker}`)
-        dispatch(setBloomberg(data))
-      }
-      await Promise.all([
-        finvizFunction(),
-        WSJFunction(),
-        tradingViewFunction(),
-        bloombergFunction(),
+      const message = await Promise.all([
+        dispatch(fetchFinvizNews(ticker)),
+        dispatch(fetchWSJNews(ticker)),
+        dispatch(fetchTradingViewNews(ticker)),
+        dispatch(fetchBloomberg(ticker)),
       ])
+      return message
     } catch (err) {
       console.log(err)
-      return err.response.data
+      return err
     }
   }
 }
