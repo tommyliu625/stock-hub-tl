@@ -57,14 +57,6 @@ const WSJHelper = async (ticker) => {
   return filterDataArr
 }
 
-const WSJOptions = {
-  executablePath:
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  headless: false,
-  slowMo: 10,
-  defaultViewport: null,
-}
-
 router.get('/WSJ/:ticker', async (req, res, next) => {
   try {
     let dataArr = []
@@ -102,11 +94,14 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     await page.click('.i-clearfix')
     await page.$eval(
       'input[name=username]',
-      (el) => (el.value = tradingViewUsername)
+      (el, tradingViewUsername) => (el.value = tradingViewUsername),
+      tradingViewUsername
     )
     await page.$eval(
       'input[name=password]',
-      (el) => (el.value = tradingViewPassword)
+      (el, tradingViewPassword) => (
+        (el.value = tradingViewPassword), tradingViewPassword
+      )
     )
     await page.click('.tv-button__loader')
     await page.waitForTimeout(850)

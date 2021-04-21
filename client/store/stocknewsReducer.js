@@ -115,7 +115,7 @@ export const getAllNews = (ticker) => {
         dispatch(fetchFinvizNews(ticker)),
         dispatch(fetchWSJNews(ticker)),
         dispatch(fetchTradingViewNews(ticker)),
-        dispatch(fetchBloomberg(ticker)),
+        // dispatch(fetchBloomberg(ticker)),
       ])
       return message
     } catch (err) {
