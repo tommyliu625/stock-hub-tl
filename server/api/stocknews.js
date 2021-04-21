@@ -96,7 +96,14 @@ router.get('/WSJ/:ticker', async (req, res, next) => {
   }
 })
 
-const chromeOptions = {
+const WSJHeroku = {
+  headless: true,
+  slowMo: 10,
+  defaultViewport: null,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+}
+
+const WSJOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   headless: true,
@@ -112,7 +119,12 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       return stock.Symbol === req.params.ticker.toUpperCase()
     }).exchange
     let ticker = req.params.ticker
-    const browser = await puppeteer.launch(chromeOptions)
+    let browser
+    if (process.env.NODE_ENV === 'production') {
+      browser = await puppeteer.launch(WSJHeroku)
+    } else {
+      browser = await puppeteer.launch(WSJOptions)
+    }
     const page = await browser.newPage()
     await page.goto('https://www.tradingview.com/#signin')
     page.setDefaultNavigationTimeout(10000)
@@ -177,19 +189,30 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
   }
 })
 
-const BloombergOptions = {
-  executablePath:
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+const BloombergHeroku = {
   headless: true,
   slowMo: 10,
   defaultViewport: null,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
+const BloombergOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: true,
+  slowMo: 10,
+  defaultViewport: null,
+}
+
 // eslint-disable-next-line max-statements
 router.get('/bloomberg/:ticker', async (req, res, next) => {
   try {
-    const browser = await puppeteer.launch(BloombergOptions)
+    let browser
+    if (process.env.NODE_ENV === 'production') {
+      browser = await puppeteer.launch(BloombergHeroku)
+    } else {
+      browser = await puppeteer.launch(BloombergOptions)
+    }
     const page = await browser.newPage()
     page.setDefaultTimeout(10000)
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
