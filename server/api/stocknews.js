@@ -102,6 +102,7 @@ const chromeOptions = {
   headless: true,
   // slowMo: 1,
   defaultViewport: null,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
 // eslint-disable-next-line max-statements
@@ -182,6 +183,7 @@ const BloombergOptions = {
   headless: true,
   slowMo: 10,
   defaultViewport: null,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
 // eslint-disable-next-line max-statements
