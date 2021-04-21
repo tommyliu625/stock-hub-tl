@@ -4,11 +4,35 @@ const cheerio = require('cheerio')
 const puppeteer = require('puppeteer')
 const poll = require('promise-poller').default
 const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
-const {
-  captchaAPI,
-  tradingViewUsername,
-  tradingViewPassword,
-} = require('../../secrets')
+
+let captchaAPI =
+  process.env.NODE_ENV !== 'production'
+    ? require('../../secrets').captchaAPI
+    : process.env.captchaAPI
+
+let tradingViewUsername =
+  process.env.NODE_ENV !== 'production'
+    ? require('../../secrets').tradingViewUsername
+    : process.env.tradingViewUsername
+
+let tradingViewPassword =
+  process.env.NODE_ENV !== 'production'
+    ? require('../../secrets').tradingViewPassword
+    : process.env.tradingViewPassword
+
+// let captchaAPI
+// let tradingViewUsername
+// let tradingViewPassword
+// if (process.env.NODE_ENV !== 'production') {
+//   let secrets = require('../../secrets')
+//   captchaAPI = secrets.captchaAPI
+//   tradingViewUsername = secrets.tradingViewUsername
+//   tradingViewPassword = secrets.tradingViewPassword
+// } else {
+//   captchaAPI = process.env.captchaAPI
+//   tradingViewUsername = process.env.tradingViewUsername
+//   tradingViewPassword = process.env.tradingViewPassword
+// }
 
 router.get('/finviz/:ticker', async (req, res, next) => {
   try {
@@ -99,9 +123,8 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     )
     await page.$eval(
       'input[name=password]',
-      (el, tradingViewPassword) => (
-        (el.value = tradingViewPassword), tradingViewPassword
-      )
+      (el, tradingViewPassword) => (el.value = tradingViewPassword),
+      tradingViewPassword
     )
     await page.click('.tv-button__loader')
     await page.waitForTimeout(850)
