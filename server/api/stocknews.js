@@ -4,7 +4,11 @@ const cheerio = require('cheerio')
 const puppeteer = require('puppeteer')
 const poll = require('promise-poller').default
 const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
-const {captchaAPI} = require('../../secrets')
+const {
+  captchaAPI,
+  tradingViewUsername,
+  tradingViewPassword,
+} = require('../../secrets')
 
 router.get('/finviz/:ticker', async (req, res, next) => {
   try {
@@ -98,9 +102,12 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     await page.click('.i-clearfix')
     await page.$eval(
       'input[name=username]',
-      (el) => (el.value = 'bemorechillscript@gmail.com')
+      (el) => (el.value = tradingViewUsername)
     )
-    await page.$eval('input[name=password]', (el) => (el.value = 'whothem4n'))
+    await page.$eval(
+      'input[name=password]',
+      (el) => (el.value = tradingViewPassword)
+    )
     await page.click('.tv-button__loader')
     await page.waitForTimeout(850)
     await page.goto(
