@@ -7,23 +7,22 @@ import StockNewsOnChart from './StockNewsOnChart'
 const StockChartComponent = (props) => {
   const {stock} = props
   return (
-    <React.Fragment>
-      <h1>Stock Hub - You're all-in-one hub for stocknews and charts</h1>
-      <SearchBar />
+    <div>
+      <div id="stockchart-div">
+        <h1>Stock Hub - You're all-in-one hub for stock news and charts</h1>
+        <SearchBar />
+      </div>
       <div id="title-price-div">
         {stock.company && <span>{stock.company.name}</span>}
         {stock.stockPrices && (
           <span>
-            Stock Price: $
-            {Number(
-              stock.stockPrices[stock.stockPrices.length - 1].open
-            ).toFixed(2)}
+            Stock Price: ${Number(stock.stockPrices[0].open).toFixed(2)}
           </span>
         )}
       </div>
       <ChartComponent />
       {stock.company && <StockNewsOnChart stock={stock} />}
-    </React.Fragment>
+    </div>
   )
 }
 

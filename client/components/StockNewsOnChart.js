@@ -78,7 +78,7 @@ class StockNews extends React.Component {
     }
     return (
       <div>
-        <div>
+        <div id="stockcharts-news-buttons">
           {stocksites &&
             stocksites.map((value) => {
               return (
@@ -95,7 +95,7 @@ class StockNews extends React.Component {
               )
             })}
         </div>
-        {selectedNewsJSX}
+        <div id="articles-stockchart">{selectedNewsJSX}</div>
       </div>
     )
   }

@@ -3,8 +3,8 @@ import {Link} from 'react-router-dom'
 
 const Navbar = () => {
   return (
-    <nav className="navbar navbar-expand-sm bg-dark">
-      <div className="container-fluid">
+    <div id="navbar">
+      <div id="nav-link-div">
         <Link
           className="nav-link"
           // to="/stockchart"
@@ -24,7 +24,8 @@ const Navbar = () => {
           Stock News
         </Link>
       </div>
-    </nav>
+      <p>Stock Hub</p>
+    </div>
   )
 }
 

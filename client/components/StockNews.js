@@ -120,39 +120,47 @@ class StockNews extends React.Component {
       }
     }
     return (
-      <div>
+      <div id="stocknews-div">
+        <h1>Stock News</h1>
         <form
+          id="stocknews-form"
           onSubmit={(e) => {
             this.handleSubmit(e)
           }}
         >
-          <input
-            placeholder="select ticker"
-            name="ticker"
-            list="tickers"
-            value={this.state.input}
-            onChange={this.handleInputChange}
-          ></input>
-          <datalist
-            value={this.state.input}
-            onChange={this.handleInputChange}
-            id="tickers"
-          >
-            <option value="" disabled hidden />
-            {this.state.searchBarFilter.length &&
-              this.state.searchBarFilter.map((searches) => {
-                return (
-                  <option value={searches.ticker}>
-                    {`${searches.ticker} - ${searches.name}`}
-                  </option>
-                )
-              })}
-          </datalist>
-          <button type="submit" disabled={disable}>
-            Submit
-          </button>
-          {disable && <div>Button disabled while data is loading</div>}
-          <div>
+          <div id="stocknews-inputButton-div">
+            <input
+              placeholder="Select ticker..."
+              name="ticker"
+              list="tickers"
+              value={this.state.input}
+              onChange={this.handleInputChange}
+            ></input>
+            <datalist
+              value={this.state.input}
+              onChange={this.handleInputChange}
+              id="tickers"
+            >
+              <option value="" disabled hidden />
+              {this.state.searchBarFilter.length &&
+                this.state.searchBarFilter.map((searches) => {
+                  return (
+                    <option value={searches.ticker}>
+                      {`${searches.ticker} - ${searches.name}`}
+                    </option>
+                  )
+                })}
+            </datalist>
+            <button type="submit" disabled={disable}>
+              Submit
+            </button>
+            {disable && (
+              <p style={{color: 'red'}}>
+                Button disabled while data is loading
+              </p>
+            )}
+          </div>
+          <div id="newsCat-div">
             {stocksites &&
               stocksites.map((value) => {
                 return (
@@ -170,7 +178,7 @@ class StockNews extends React.Component {
               })}
           </div>
         </form>
-        {selectedNewsJSX}
+        <div id="stockarticles-on-stocknews">{selectedNewsJSX}</div>
       </div>
     )
   }

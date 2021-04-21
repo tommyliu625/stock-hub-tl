@@ -35,13 +35,7 @@ class SearchBar extends React.Component {
   }
   handleSubmit = async (e) => {
     e.preventDefault()
-    await this.setState({...this.state, disable: true})
-    if (!this.state.hasSubmitted) {
-      await this.setState({...this.state, hasSubmitted: true})
-    } else {
-      this.props.resetTV()
-      this.props.resetBloomberg()
-    }
+
     const {
       keyword,
       timePeriodSelection,
@@ -51,6 +45,13 @@ class SearchBar extends React.Component {
     if (!timeIntervalSelection || !keyword || !searchBarFilter) {
       alert('Invalid Input')
     } else {
+      await this.setState({...this.state, disable: true})
+      if (!this.state.hasSubmitted) {
+        await this.setState({...this.state, hasSubmitted: true})
+      } else {
+        this.props.resetTV()
+        this.props.resetBloomberg()
+      }
       this.props.fetchStock({
         keyword: keyword.toUpperCase(),
         timePeriodSelection,
@@ -121,7 +122,7 @@ class SearchBar extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <form>
+        <form id="stockchart-form">
           <label>Choose a stock ticker</label>
           <input
             value={this.state.keyword}
@@ -146,7 +147,7 @@ class SearchBar extends React.Component {
         </form>
         <div id="time-input-div">
           <div id="time-period-div">
-            Time Period
+            <p>Time Period</p>
             <select
               id="time-period"
               value={this.state.timePeriodSelection}
@@ -164,7 +165,7 @@ class SearchBar extends React.Component {
             </select>
           </div>
           <div id="time-interval-div">
-            Time Interval
+            <p>Time Interval </p>
             <select
               id="time-interval"
               value={this.state.timeIntervalSelection}
@@ -182,7 +183,7 @@ class SearchBar extends React.Component {
             Submit Info
           </button>
           {this.state.disable && (
-            <div>Button disabled while data is loading</div>
+            <p style={{color: 'red'}}>Button disabled while data is loading</p>
           )}
         </div>
       </React.Fragment>

@@ -23,6 +23,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
     "@reactchartjs/react-chart.js": "^1.0.0-rc.3",
     "alphavantage": "^2.2.0",
     "assert": "^1.5.0",
