@@ -6,19 +6,19 @@ const poll = require('promise-poller').default
 const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
 
 let captchaAPI =
-  process.env.NODE_ENV !== 'production'
-    ? require('../../secrets').captchaAPI
-    : process.env.captchaAPI
+  process.env.NODE_ENV === 'production'
+    ? process.env.captchaAPI
+    : require('../../secrets').captchaAPI
 
 let tradingViewUsername =
-  process.env.NODE_ENV !== 'production'
-    ? require('../../secrets').tradingViewUsername
-    : process.env.tradingViewUsername
+  process.env.NODE_ENV === 'production'
+    ? process.env.tradingViewUsername
+    : require('../../secrets').tradingViewUsername
 
 let tradingViewPassword =
-  process.env.NODE_ENV !== 'production'
-    ? require('../../secrets').tradingViewPassword
-    : process.env.tradingViewPassword
+  process.env.NODE_ENV === 'production'
+    ? process.env.tradingViewPassword
+    : require('../../secrets').tradingViewPassword
 
 // let captchaAPI
 // let tradingViewUsername

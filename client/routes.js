@@ -8,6 +8,8 @@ class Routes extends React.Component {
   render() {
     return (
       <Switch>
+        <Route exact path="/" component={StockChartComponent}></Route>
+
         <Route exact path="/stockchart" component={StockChartComponent}></Route>
         <Route path="/stocknews" component={StockNews}></Route>
       </Switch>
