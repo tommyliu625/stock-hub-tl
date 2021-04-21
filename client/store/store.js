@@ -4,14 +4,12 @@ import thunkMiddleware from 'redux-thunk'
 import {composeWithDevTools} from 'redux-devtools-extension'
 import singleStock, {getStock, getCompany} from './singleStockReducer'
 import stockList from './stockListReducer'
-import messages from './messagesReducer'
 import stocknews from './stocknewsReducer'
 import {dummyAAPL1YearDaily, dummyAMZN5yearWeekly} from '../dummyData'
 
 const rootReducer = combineReducers({
   singleStock,
   stockList,
-  messages,
   stocknews,
 })
 const middleware = composeWithDevTools(

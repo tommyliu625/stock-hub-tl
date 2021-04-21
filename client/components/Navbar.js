@@ -11,9 +11,6 @@ const Navbar = () => {
         <Link className="nav-link" to="/stockchart">
           Stock Chart
         </Link>
-        <Link className="nav-link" to="/chat">
-          Chat
-        </Link>{' '}
         <Link className="nav-link" to="/stocknews">
           Stock News
         </Link>
