@@ -80,7 +80,7 @@ const chromeOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   headless: true,
-  slowMo: 0,
+  // slowMo: 1,
   defaultViewport: null,
 }
 

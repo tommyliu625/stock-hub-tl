@@ -5,13 +5,22 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-sm bg-dark">
       <div className="container-fluid">
-        <Link className="nav-link" to="/">
-          Home
-        </Link>
-        <Link className="nav-link" to="/stockchart">
+        <Link
+          className="nav-link"
+          // to="/stockchart"
+          onClick={() => {
+            window.location.href = '/stockchart'
+          }}
+        >
           Stock Chart
         </Link>
-        <Link className="nav-link" to="/stocknews">
+        <Link
+          className="nav-link"
+          // to="/stocknews"
+          onClick={() => {
+            window.location.href = '/stocknews'
+          }}
+        >
           Stock News
         </Link>
       </div>

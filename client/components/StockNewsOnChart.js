@@ -1,8 +1,10 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {fetchFinvizNews, fetchWSJNews} from '../store/stocknewsReducer'
+import {resetTV, resetBloomberg, getAllNews} from '../store/stocknewsReducer'
 import FinvizComponent from './FinvizComponent'
 import WSJComponent from './WSJComponent'
+import TradingViewComponent from './TradingViewComponent'
+import BloombergComponent from './BloombergComponent'
 
 class StockNews extends React.Component {
   constructor(props) {
@@ -10,18 +12,70 @@ class StockNews extends React.Component {
     this.state = {input: '', selectedCategory: 'finviz'}
   }
   // componentDidMount() {
-    //   this.props.getFinviz(this.props.stock.company.ticker)
-    //   this.props.getWSJ(this.props.stock.company.ticker)
+  //   this.props.getFinviz(this.props.stock.company.ticker)
+  //   this.props.getWSJ(this.props.stock.company.ticker)
   // }
   changeCategory = (e) => {
     e.preventDefault()
-    console.log(e.target.value)
     this.setState({...this.state, selectedCategory: e.target.value})
   }
+  // eslint-disable-next-line complexity
   render() {
     const {stocknews} = this.props
     let stocksites = Object.keys(this.props.stocknews)
+    let selectedNewsJSX
     let {selectedCategory} = this.state
+    if (selectedCategory === 'finviz') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <FinvizComponent links={links} />
+        })
+      }
+    } else if (selectedCategory === 'WSJ') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <WSJComponent links={links} />
+        })
+      }
+    } else if (selectedCategory === 'TradingView') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.TradingView.length) {
+        selectedNewsJSX = (
+          <div className="tradingview-detail-div">
+            <div>
+              Grabbing TradingView data. This may take up to 10 seconds...{' '}
+              <img src="loading-spinner.gif" width="50px" height="50px" />
+            </div>
+          </div>
+        )
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((info) => {
+          return <TradingViewComponent info={info} />
+        })
+      }
+    } else if (selectedCategory === 'Bloomberg') {
+      if (stocknews.Bloomberg.length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.Bloomberg.length) {
+        selectedNewsJSX = (
+          <div className="bloomberg-detail-div">
+            <div>
+              Grabbing Bloomberg data. This may take up to 60 seconds...{' '}
+              <img src="loading-spinner.gif" width="50px" height="50px" />
+            </div>
+          </div>
+        )
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((info) => {
+          return <BloombergComponent info={info} />
+        })
+      }
+    }
     return (
       <div>
         <div>
@@ -41,15 +95,7 @@ class StockNews extends React.Component {
               )
             })}
         </div>
-        {stocknews[selectedCategory].length && selectedCategory === 'finviz'
-          ? stocknews[selectedCategory].map((links) => {
-              return <FinvizComponent links={links} />
-            })
-          : selectedCategory === 'WSJ'
-          ? stocknews[selectedCategory].map((links) => {
-              return <WSJComponent links={links} />
-            })
-          : null}
+        {selectedNewsJSX}
       </div>
     )
   }
@@ -64,8 +110,9 @@ const mapState = (state) => {
 
 const mapDispatch = (dispatch) => {
   return {
-    getFinviz: (ticker) => dispatch(fetchFinvizNews(ticker)),
-    getWSJ: (ticker) => dispatch(fetchWSJNews(ticker)),
+    resetTV: () => dispatch(resetTV()),
+    resetBloomberg: () => dispatch(resetBloomberg()),
+    getAllNews: (ticker) => dispatch(getAllNews(ticker)),
   }
 }
 

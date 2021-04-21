@@ -4,7 +4,7 @@ import React from 'react'
 import {connect} from 'react-redux'
 import {fetchStocks} from '../store/stockListReducer'
 import {fetchStock, getCompany} from '../store/singleStockReducer'
-import {fetchFinvizNews, fetchWSJNews} from '../store/stocknewsReducer'
+import {resetTV, resetBloomberg, getAllNews} from '../store/stocknewsReducer'
 
 class SearchBar extends React.Component {
   constructor() {
@@ -14,6 +14,8 @@ class SearchBar extends React.Component {
       searchBarFilter: [],
       timePeriodSelection: '',
       timeIntervalSelection: '',
+      hasSubmitted: false,
+      disable: false,
     }
   }
   componentDidMount() {
@@ -31,8 +33,15 @@ class SearchBar extends React.Component {
       timeIntervalSelection: e.target.value,
     })
   }
-  handleSubmit = (e) => {
-    // e.preventDefault()
+  handleSubmit = async (e) => {
+    e.preventDefault()
+    await this.setState({...this.state, disable: true})
+    if (!this.state.hasSubmitted) {
+      await this.setState({...this.state, hasSubmitted: true})
+    } else {
+      this.props.resetTV()
+      this.props.resetBloomberg()
+    }
     const {
       keyword,
       timePeriodSelection,
@@ -47,7 +56,7 @@ class SearchBar extends React.Component {
         timePeriodSelection,
         timeIntervalSelection,
       })
-      this.setState({
+      await this.setState({
         ...this.state,
         timeIntervalSelection: '',
         timePeriodSelection: '',
@@ -56,8 +65,8 @@ class SearchBar extends React.Component {
         return ticker.ticker === keyword.toUpperCase()
       })
       this.props.getCompany(selectedTicker)
-      this.props.getFinviz(selectedTicker.ticker)
-      this.props.getWSJ(selectedTicker.ticker)
+      let response = await this.props.getAllNews(selectedTicker.ticker)
+      this.setState({...this.state, disable: false})
     }
   }
   handleInputChange = async (e) => {
@@ -165,19 +174,26 @@ class SearchBar extends React.Component {
               {this.state.timePeriodSelection && this.handleIntervalMapping()}
             </select>
           </div>
-          <button type="submit" onClick={this.handleSubmit}>
+          <button
+            type="submit"
+            onClick={this.handleSubmit}
+            disabled={this.state.disable}
+          >
             Submit Info
           </button>
+          {this.state.disable && (
+            <div>Button disabled while data is loading</div>
+          )}
         </div>
       </React.Fragment>
     )
   }
 }
-// save for letter when we use alphavantage api search
 
 const mapState = (state) => {
   return {
     stockList: state.stockList,
+    stock: state.singleStock,
   }
 }
 
@@ -186,8 +202,9 @@ const mapDispatch = (dispatch) => {
     fetchStock: (stock) => dispatch(fetchStock(stock)),
     fetchStocks: () => dispatch(fetchStocks()),
     getCompany: (company) => dispatch(getCompany(company)),
-    getFinviz: (ticker) => dispatch(fetchFinvizNews(ticker)),
-    getWSJ: (ticker) => dispatch(fetchWSJNews(ticker)),
+    resetTV: () => dispatch(resetTV()),
+    resetBloomberg: () => dispatch(resetBloomberg()),
+    getAllNews: (ticker) => dispatch(getAllNews(ticker)),
   }
 }
 

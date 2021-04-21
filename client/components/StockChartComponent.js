@@ -8,7 +8,7 @@ const StockChartComponent = (props) => {
   const {stock} = props
   return (
     <React.Fragment>
-      <h1>Welcome to my AWP/Stackathon Project - Stock Searcher</h1>
+      <h1>Stock Hub - You're all-in-one hub for stocknews and charts</h1>
       <SearchBar />
       <div id="title-price-div">
         {stock.company && <span>{stock.company.name}</span>}

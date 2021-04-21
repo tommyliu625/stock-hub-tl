@@ -16,7 +16,7 @@ class StockNews extends React.Component {
       selectedCategory: 'finviz',
       searchBarFilter: [],
       hasSubmitted: false,
-      disabled: false,
+      disable: false,
     }
   }
   componentDidMount() {
@@ -24,16 +24,18 @@ class StockNews extends React.Component {
   }
   handleSubmit = async (e) => {
     e.preventDefault()
-    this.setState({...this.state, disable: true})
+    console.log('ticker', e.target.ticker.value)
+    let ticker = e.target.ticker.value
+    await this.setState({...this.state, disable: true})
     if (!this.state.hasSubmitted) {
-      this.setState({...this.state, hasSubmitted: true})
+      await this.setState({...this.state, hasSubmitted: true})
     } else {
       this.props.resetTV()
       this.props.resetBloomberg()
     }
-    const response = await this.props.getAllNews(e.target.ticker.value)
+    const response = await this.props.getAllNews(ticker)
     console.log(response)
-    this.setState({...this.state, disable: false})
+    await this.setState({...this.state, disable: false})
   }
   changeCategory = (e) => {
     e.preventDefault()
