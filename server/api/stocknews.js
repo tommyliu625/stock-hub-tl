@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 const router = require('express').Router()
 const axios = require('axios')
 const cheerio = require('cheerio')
@@ -33,6 +34,59 @@ let tradingViewPassword =
 //   tradingViewUsername = process.env.tradingViewUsername
 //   tradingViewPassword = process.env.tradingViewPassword
 // }
+
+const extendTimeoutMiddleware = (req, res, next) => {
+  const space = ' '
+  let isFinished = false
+  let isDataSent = false
+  // Only extend the timeout for API requests
+  if (!req.url.includes('/api')) {
+    next()
+    return
+  }
+
+  res.once('finish', () => {
+    isFinished = true
+  })
+
+  res.once('end', () => {
+    isFinished = true
+  })
+
+  res.once('close', () => {
+    isFinished = true
+  })
+
+  res.on('data', (data) => {
+    // Look for something other than our blank space to indicate that real
+    // data is now being sent back to the client.
+    if (data !== space) {
+      isDataSent = true
+    }
+  })
+
+  const waitAndSend = () => {
+    setTimeout(() => {
+      // If the response hasn't finished and hasn't sent any data back....
+      if (!isFinished && !isDataSent) {
+        // Need to write the status code/headers if they haven't been sent yet.
+        if (!res.headersSent) {
+          res.writeHead(202)
+        }
+
+        res.send('inside space', space)
+
+        // Wait another 15 seconds
+        waitAndSend()
+      }
+    }, 5000)
+  }
+
+  waitAndSend()
+  next()
+}
+
+router.use(extendTimeoutMiddleware)
 
 router.get('/finviz/:ticker', async (req, res, next) => {
   try {
@@ -98,7 +152,7 @@ router.get('/WSJ/:ticker', async (req, res, next) => {
 
 const WSJHeroku = {
   headless: true,
-  slowMo: 10,
+  slowMo: 50,
   defaultViewport: null,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
@@ -113,6 +167,7 @@ const WSJOptions = {
 }
 
 // eslint-disable-next-line max-statements
+// eslint-disable-next-line complexity
 router.get('/tradingview/:ticker', async (req, res, next) => {
   try {
     const exchange = allStocks.find((stock) => {
@@ -127,7 +182,9 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     }
     const page = await browser.newPage()
     await page.goto('https://www.tradingview.com/#signin')
-    page.setDefaultNavigationTimeout(10000)
+    if (process.env.NODE_ENV !== 'production') {
+      page.setDefaultNavigationTimeout(10000)
+    }
     await page.click('.i-clearfix')
     await page.$eval(
       'input[name=username]',
@@ -214,7 +271,9 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       browser = await puppeteer.launch(BloombergOptions)
     }
     const page = await browser.newPage()
-    page.setDefaultTimeout(10000)
+    if (process.env.NODE_ENV !== 'production') {
+      page.setDefaultTimeout(10000)
+    }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
     if (
