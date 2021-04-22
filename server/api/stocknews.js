@@ -309,6 +309,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
+    console.log('currentUrl b4 captchaSolver', currentUrl)
     // if (
     //   currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
     // ) {
@@ -335,9 +336,9 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       await page.waitForTimeout(5000)
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
-    currentUrl = page.url()
+    let newUrl = page.url()
     let bloombergInfo = []
-    console.log('currentUrl', currentUrl)
+    console.log('newUrl', newUrl)
     if (
       currentUrl ===
       `https://www.bloomberg.com/quote/${req.params.ticker.toUpperCase()}:US`
@@ -364,7 +365,9 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     // await page.screenshot({path: 'example.png'})
     // await browser.close()
     console.log('bloomberg info', bloombergInfo)
-    if (process.env.NODE_ENV === 'production') {
+    if (bloombergInfo.length === 0) {
+      res.status(404)
+    } else if (process.env.NODE_ENV === 'production') {
       res.write(JSON.stringify(bloombergInfo))
       res.end()
     } else {
