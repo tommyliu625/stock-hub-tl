@@ -159,17 +159,16 @@ router.get('/WSJ/:ticker', async (req, res, next) => {
   }
 })
 
-const WSJHeroku = {
+const TradingViewHeroku = {
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
-const WSJOptions = {
+const TradingViewOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   headless: true,
   // slowMo: 1,
   defaultViewport: null,
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
 // eslint-disable-next-line max-statements
@@ -177,9 +176,9 @@ const WSJOptions = {
 router.get('/tradingview/:ticker', async (req, res, next) => {
   let browser
   if (process.env.NODE_ENV === 'production') {
-    browser = await puppeteer.launch(WSJHeroku)
+    browser = await puppeteer.launch(TradingViewHeroku)
   } else {
-    browser = await puppeteer.launch(WSJOptions)
+    browser = await puppeteer.launch(TradingViewOptions)
   }
   try {
     const exchange = allStocks.find((stock) => {
@@ -204,7 +203,7 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       tradingViewPassword
     )
     await page.click('.tv-button__loader')
-    await page.waitForTimeout(850)
+    await page.waitForTimeout(1000)
     await page.goto(
       `https://www.tradingview.com/symbols/${exchange}-${ticker}/`
     )
@@ -217,29 +216,50 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       await page.click(`.js-news-widget-content div:nth-of-type(${i + 1})`)
       console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
-      await page.waitForTimeout(75)
-      await page.waitForTimeout()
-      const timeDate = await page.$$('.container-WM_9Aksw span')
-      const body = await page.$$('.description-1q24HCdy span p')
-      const title = await page.$('.title-1q24HCdy')
+      await page.waitForTimeout(25)
+      // const timeDate = await page.$$('.container-WM_9Aksw span')
+      // const body = await page.$$('.description-1q24HCdy span p')
+      // const title = await page.$('.title-1q24HCdy')
       let articleInfo = {}
-      for (const texts of timeDate) {
-        let spanText = await (
-          await texts.getProperty('textContent')
-        ).jsonValue()
-        articleInfo.timeDate = articleInfo.timeDate
-          ? articleInfo.timeDate + ' ' + spanText
-          : spanText + ' '
-      }
-      articleInfo.title = await (
-        await title.getProperty('textContent')
-      ).jsonValue()
-      for (const p of body) {
-        let bodyText = await (await p.getProperty('textContent')).jsonValue()
-        articleInfo.body = articleInfo.body
-          ? articleInfo.body + ' \n' + bodyText
-          : bodyText
-      }
+      const timeDate = await page.$$eval('.container-WM_9Aksw span', (els) =>
+        els.map((el) => el.textContent)
+      )
+      articleInfo.timeDate = timeDate.join(' ')
+      // for (const texts of timeDate) {
+      //   let spanText = await (
+      //     await texts.getProperty('textContent')
+      //   ).jsonValue()
+      //   articleInfo.timeDate = articleInfo.timeDate
+      //     ? articleInfo.timeDate + ' ' + spanText
+      //     : spanText + ' '
+      // }
+      articleInfo.title = await page.$eval(
+        '.title-1q24HCdy',
+        (el) => el.innerHTML
+      )
+      // articleInfo.title = await (
+      //   await title.getProperty('textContent')
+      // ).jsonValue()
+      // let body = await page.$$('.description-1q24HCdy span p')
+      const body = await page.$$eval(
+        '.description-1q24HCdy span p',
+        (paragraphs) => paragraphs.map((paragraph) => paragraph.textContent)
+      )
+      articleInfo.body = body.join(' ')
+
+      // for (const p of body) {
+      //   let bodyText =
+      //           articleInfo.body = articleInfo.body
+      //     ? articleInfo.body + ' \n' + bodyText
+      //     : bodyText
+      // }
+      // for (const p of body) {
+      // let bodyText = await (await p.getProperty('textContent')).jsonValue()
+      // let bodyText = await page.
+      // articleInfo.body = articleInfo.body
+      // ? articleInfo.body + ' \n' + bodyText
+      // : bodyText
+      // }
       tradingViewInfo.push(articleInfo)
       await page.waitForTimeout(25)
       await page.keyboard.press('Escape')
@@ -257,6 +277,7 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
   } catch (err) {
     next(err)
   } finally {
+    console.log('Inside tradingview finally, before browser close()')
     await browser.close()
   }
 })
@@ -284,35 +305,36 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
   try {
     const page = await browser.newPage()
     if (process.env.NODE_ENV !== 'production') {
-      page.setDefaultTimeout(10000)
+      page.setDefaultTimeout(30000)
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
-    if (
-      currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
-    ) {
-      const sitekey = await page.$eval('.g-recaptcha', (element) =>
-        element.getAttribute('data-sitekey')
-      )
-      const requestId = await initiateCaptchaRequest(
-        captchaAPI,
-        currentUrl,
-        sitekey
-      )
+    // if (
+    //   currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
+    // ) {
+    const sitekey = await page.$eval('.g-recaptcha', (element) =>
+      element.getAttribute('data-sitekey')
+    )
+    const requestId = await initiateCaptchaRequest(
+      captchaAPI,
+      currentUrl,
+      sitekey
+    )
 
-      let response = await pollForRequestResults(captchaAPI, requestId)
+    let response = await pollForRequestResults(captchaAPI, requestId)
 
-      await page.$eval(
-        '#g-recaptcha-response',
-        // eslint-disable-next-line no-return-assign
-        (el, response) => (el.innerHTML = `${response}`),
-        response
-      )
-      await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
-    }
+    let captchaResponse = await page.$eval(
+      '#g-recaptcha-response',
+      // eslint-disable-next-line no-return-assign
+      (el, response) => (el.innerHTML = `${response}`),
+      response
+    )
+    console.log('Checking captchaResponse', captchaResponse)
     if (process.env.NODE_ENV === 'production') {
+      console.log('Inside if statement for 2 second time out')
       await page.waitForTimeout(2000)
     }
+    await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     currentUrl = page.url()
     let bloombergInfo = []
     console.log('currentUrl', currentUrl)
@@ -340,7 +362,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       }
     }
     // await page.screenshot({path: 'example.png'})
-    await browser.close()
+    // await browser.close()
     console.log('bloomberg info', bloombergInfo)
     if (process.env.NODE_ENV === 'production') {
       res.write(JSON.stringify(bloombergInfo))
@@ -350,6 +372,9 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
   } catch (err) {
     next(err)
+  } finally {
+    console.log('Inside Bloomberg finally')
+    // await browser.close()
   }
 })
 async function initiateCaptchaRequest(apiKey, pageurl, sitekey) {

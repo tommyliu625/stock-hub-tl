@@ -126,7 +126,7 @@ export const getAllNews = (ticker) => {
       const message = await Promise.all([
         dispatch(fetchFinvizNews(ticker)),
         dispatch(fetchWSJNews(ticker)),
-        dispatch(fetchTradingViewNews(ticker)),
+        // dispatch(fetchTradingViewNews(ticker)),
         dispatch(fetchBloomberg(ticker)),
       ])
       return message
