@@ -79,8 +79,10 @@ export const fetchTradingViewNews = (ticker) => {
   return async (dispatch) => {
     try {
       const {data} = await axios.get(`/api/stocknews/tradingview/${ticker}`)
+      console.log('tradingview data', data)
       if (!Array.isArray(data)) {
-        dispatch(setTradingView(JSON.parse(data)))
+        let newData = data.slice(1)
+        dispatch(setTradingView(JSON.parse(newData)))
       } else {
         dispatch(setTradingView(data))
       }
@@ -100,8 +102,10 @@ export const fetchBloomberg = (ticker) => {
   return async (dispatch) => {
     try {
       const {data} = await axios.get(`/api/stocknews/bloomberg/${ticker}`)
+      console.log('bloomberg data', data)
       if (!Array.isArray(data)) {
-        dispatch(setBloomberg(JSON.parse(data)))
+        let newData = data.slice(1)
+        dispatch(setBloomberg(JSON.parse(newData)))
       } else {
         dispatch(setBloomberg(data))
       }
