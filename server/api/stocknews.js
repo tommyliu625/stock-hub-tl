@@ -327,7 +327,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     let captchaResponse = await page.$eval(
       '#g-recaptcha-response',
       // eslint-disable-next-line no-return-assign
-      (el, response) => (el.innerHTML = `${response}`),
+      (el, response) => (el.innerHTML = response),
       response
     )
     console.log('Checking captchaResponse', captchaResponse)
@@ -340,7 +340,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     let bloombergInfo = []
     console.log('newUrl', newUrl)
     if (
-      currentUrl ===
+      newUrl ===
       `https://www.bloomberg.com/quote/${req.params.ticker.toUpperCase()}:US`
     ) {
       const articles = await page.$$('#right-rail .pressReleaseItem__e9aac8ef')
