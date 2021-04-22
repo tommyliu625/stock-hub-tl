@@ -44,14 +44,12 @@ const extendTimeoutMiddleware = (req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
     next()
     return
-  } else if (!req.url.includes('/bloomberg')) {
-    next()
-    return
-  } else if (!req.url.includes('/tradingview')) {
+  }
+  if (!req.url.includes('/bloomberg') && !req.url.includes('/tradingview')) {
     next()
     return
   }
-
+  console.log('after next')
   res.once('finish', () => {
     isFinished = true
   })
@@ -84,7 +82,7 @@ const extendTimeoutMiddleware = (req, res, next) => {
           })
         }
 
-        res.write(space)
+        res.write('hello')
 
         // Wait another 15 seconds
         waitAndSend()
@@ -245,17 +243,17 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       tradingViewInfo.push(articleInfo)
       await page.waitForTimeout(25)
       await page.keyboard.press('Escape')
-      console.log(articleInfo.timeDate)
-      console.log(articleInfo.title)
+      // console.log(articleInfo.timeDate)
+      // console.log(articleInfo.title)
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
-    if (process.env.NODE_ENV === 'production') {
-      res.write(JSON.stringify(tradingViewInfo))
-      res.end()
-    } else {
-      res.send(tradingViewInfo)
-    }
+    // if (process.env.NODE_ENV === 'production') {
+    res.write(JSON.stringify(tradingViewInfo))
+    res.end()
+    // } else {
+    //   res.send(tradingViewInfo)
+    // }
   } catch (err) {
     next(err)
   }
@@ -334,18 +332,18 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
         obj.headline = headline
         obj.link = link
         obj.date = date
-        console.log(obj)
+        // console.log(obj)
         bloombergInfo.push(obj)
       }
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
-    if (process.env.NODE_ENV === 'production') {
-      res.write(JSON.stringify(bloombergInfo))
-      res.end()
-    } else {
-      res.send(bloombergInfo)
-    }
+    // if (process.env.NODE_ENV === 'production') {
+    res.write(JSON.stringify(bloombergInfo))
+    res.end()
+    // } else {
+    // res.send(bloombergInfo)
+    // }
   } catch (err) {
     next(err)
   }
