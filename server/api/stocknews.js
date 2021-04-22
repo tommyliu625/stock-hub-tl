@@ -40,7 +40,14 @@ const extendTimeoutMiddleware = (req, res, next) => {
   let isFinished = false
   let isDataSent = false
   // Only extend the timeout for API requests
-  if (!req.url.includes('/api')) {
+  console.log('req.url', req.url)
+  if (process.env.NODE_ENV !== 'production') {
+    next()
+    return
+  } else if (!req.url.includes('/bloomberg')) {
+    next()
+    return
+  } else if (!req.url.includes('/tradingview')) {
     next()
     return
   }
@@ -71,10 +78,13 @@ const extendTimeoutMiddleware = (req, res, next) => {
       if (!isFinished && !isDataSent) {
         // Need to write the status code/headers if they haven't been sent yet.
         if (!res.headersSent) {
-          res.writeHead(202)
+          // res.writeHead(202)
+          res.writeHead(202, {
+            'Content-Type': 'application/json',
+          })
         }
 
-        res.send('inside space', space)
+        res.write(space)
 
         // Wait another 15 seconds
         waitAndSend()
@@ -240,7 +250,12 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
-    res.send(tradingViewInfo)
+    if (process.env.NODE_ENV === 'production') {
+      res.write(JSON.stringify(tradingViewInfo))
+      res.end()
+    } else {
+      res.send(tradingViewInfo)
+    }
   } catch (err) {
     next(err)
   }
@@ -325,7 +340,12 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
-    res.send(bloombergInfo)
+    if (process.env.NODE_ENV === 'production') {
+      res.write(JSON.stringify(bloombergInfo))
+      res.end()
+    } else {
+      res.send(bloombergInfo)
+    }
   } catch (err) {
     next(err)
   }
