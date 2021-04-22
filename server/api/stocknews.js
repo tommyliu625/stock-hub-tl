@@ -331,8 +331,8 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     )
     console.log('Checking captchaResponse', captchaResponse)
     if (process.env.NODE_ENV === 'production') {
-      console.log('Inside if statement for 2 second time out')
-      await page.waitForTimeout(2000)
+      console.log('Inside if statement for 5 second time out')
+      await page.waitForTimeout(5000)
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     currentUrl = page.url()
