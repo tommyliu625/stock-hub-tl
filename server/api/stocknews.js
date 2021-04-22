@@ -331,6 +331,12 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       response
     )
     console.log('Checking captchaResponse', captchaResponse)
+    function handleCaptcha() {
+      console.log('inside callback')
+    }
+    handleCaptcha()
+    // await page.waitForTimeout(10000)
+    // await page.$eval('#recaptcha-token', (form) => form.submit())
     if (process.env.NODE_ENV === 'production') {
       console.log('Inside if statement for 5 second time out')
       await page.waitForTimeout(5000)
