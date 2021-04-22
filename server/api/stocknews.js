@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable max-statements */
 const router = require('express').Router()
 const axios = require('axios')
@@ -41,10 +42,10 @@ const extendTimeoutMiddleware = (req, res, next) => {
   let isDataSent = false
   // Only extend the timeout for API requests
   console.log('req.url', req.url)
-  // if (process.env.NODE_ENV !== 'production') {
-  //   next()
-  //   return
-  // }
+  if (process.env.NODE_ENV !== 'production') {
+    next()
+    return
+  }
   if (!req.url.includes('/bloomberg') && !req.url.includes('/tradingview')) {
     next()
     return
@@ -159,9 +160,6 @@ router.get('/WSJ/:ticker', async (req, res, next) => {
 })
 
 const WSJHeroku = {
-  headless: true,
-  slowMo: 50,
-  defaultViewport: null,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
@@ -177,17 +175,18 @@ const WSJOptions = {
 // eslint-disable-next-line max-statements
 // eslint-disable-next-line complexity
 router.get('/tradingview/:ticker', async (req, res, next) => {
+  let browser
+  if (process.env.NODE_ENV === 'production') {
+    browser = await puppeteer.launch(WSJHeroku)
+  } else {
+    browser = await puppeteer.launch(WSJOptions)
+  }
   try {
     const exchange = allStocks.find((stock) => {
       return stock.Symbol === req.params.ticker.toUpperCase()
     }).exchange
     let ticker = req.params.ticker
-    let browser
-    if (process.env.NODE_ENV === 'production') {
-      browser = await puppeteer.launch(WSJHeroku)
-    } else {
-      browser = await puppeteer.launch(WSJOptions)
-    }
+
     const page = await browser.newPage()
     await page.goto('https://www.tradingview.com/#signin')
     if (process.env.NODE_ENV !== 'production') {
@@ -247,23 +246,22 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       // console.log(articleInfo.timeDate)
       // console.log(articleInfo.title)
     }
-    await page.screenshot({path: 'example.png'})
+    // await page.screenshot({path: 'example.png'})
     await browser.close()
-    // if (process.env.NODE_ENV === 'production') {
-    res.write(JSON.stringify(tradingViewInfo))
-    res.end()
-    // } else {
-    //   res.send(tradingViewInfo)
-    // }
+    if (process.env.NODE_ENV === 'production') {
+      res.write(JSON.stringify(tradingViewInfo))
+      res.end()
+    } else {
+      res.send(tradingViewInfo)
+    }
   } catch (err) {
     next(err)
+  } finally {
+    await browser.close()
   }
 })
 
 const BloombergHeroku = {
-  headless: true,
-  slowMo: 10,
-  defaultViewport: null,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
@@ -277,13 +275,13 @@ const BloombergOptions = {
 
 // eslint-disable-next-line max-statements
 router.get('/bloomberg/:ticker', async (req, res, next) => {
+  let browser
+  if (process.env.NODE_ENV === 'production') {
+    browser = await puppeteer.launch(BloombergHeroku)
+  } else {
+    browser = await puppeteer.launch(BloombergOptions)
+  }
   try {
-    let browser
-    if (process.env.NODE_ENV === 'production') {
-      browser = await puppeteer.launch(BloombergHeroku)
-    } else {
-      browser = await puppeteer.launch(BloombergOptions)
-    }
     const page = await browser.newPage()
     if (process.env.NODE_ENV !== 'production') {
       page.setDefaultTimeout(10000)
@@ -312,8 +310,12 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       )
       await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     }
+    if (process.env.NODE_ENV === 'production') {
+      await page.waitForTimeout(2000)
+    }
     currentUrl = page.url()
     let bloombergInfo = []
+    console.log('currentUrl', currentUrl)
     if (
       currentUrl ===
       `https://www.bloomberg.com/quote/${req.params.ticker.toUpperCase()}:US`
@@ -337,15 +339,15 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
         bloombergInfo.push(obj)
       }
     }
-    await page.screenshot({path: 'example.png'})
+    // await page.screenshot({path: 'example.png'})
     await browser.close()
     console.log('bloomberg info', bloombergInfo)
-    // if (process.env.NODE_ENV === 'production') {
-    res.write(JSON.stringify(bloombergInfo))
-    res.end()
-    // } else {
-    // res.send(bloombergInfo)
-    // }
+    if (process.env.NODE_ENV === 'production') {
+      res.write(JSON.stringify(bloombergInfo))
+      res.end()
+    } else {
+      res.send(bloombergInfo)
+    }
   } catch (err) {
     next(err)
   }
