@@ -218,7 +218,8 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       await page.click(`.js-news-widget-content div:nth-of-type(${i + 1})`)
       console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
-      await page.waitForTimeout(25)
+      await page.waitForTimeout(75)
+      await page.waitForTimeout()
       const timeDate = await page.$$('.container-WM_9Aksw span')
       const body = await page.$$('.description-1q24HCdy span p')
       const title = await page.$('.title-1q24HCdy')
@@ -338,6 +339,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     await page.screenshot({path: 'example.png'})
     await browser.close()
+    console.log('bloomberg info', bloombergInfo)
     // if (process.env.NODE_ENV === 'production') {
     res.write(JSON.stringify(bloombergInfo))
     res.end()
