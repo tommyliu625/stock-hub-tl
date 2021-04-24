@@ -3,7 +3,15 @@
 const router = require('express').Router()
 const axios = require('axios')
 const cheerio = require('cheerio')
-const puppeteer = require('puppeteer')
+// const puppeteer = require('puppeteer')
+// puppeteer-extra is a drop-in replacement for puppeteer,
+// it augments the installed puppeteer with plugin functionality
+const puppeteer = require('puppeteer-extra')
+
+// add recaptcha plugin and provide it your 2captcha token (= their apiKey)
+// 2captcha is the builtin solution provider but others would work as well.
+// Please note: You need to add funds to your 2captcha account for this to work
+
 const poll = require('promise-poller').default
 const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
 
@@ -22,19 +30,16 @@ let tradingViewPassword =
     ? process.env.tradingViewPassword
     : require('../../secrets').tradingViewPassword
 
-// let captchaAPI
-// let tradingViewUsername
-// let tradingViewPassword
-// if (process.env.NODE_ENV !== 'production') {
-//   let secrets = require('../../secrets')
-//   captchaAPI = secrets.captchaAPI
-//   tradingViewUsername = secrets.tradingViewUsername
-//   tradingViewPassword = secrets.tradingViewPassword
-// } else {
-//   captchaAPI = process.env.captchaAPI
-//   tradingViewUsername = process.env.tradingViewUsername
-//   tradingViewPassword = process.env.tradingViewPassword
-// }
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: {
+      id: '2captcha',
+      token: captchaAPI, // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+    },
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  })
+)
 
 const extendTimeoutMiddleware = (req, res, next) => {
   const space = ' '
@@ -306,6 +311,8 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     const page = await browser.newPage()
     if (process.env.NODE_ENV !== 'production') {
       page.setDefaultTimeout(30000)
+    } else {
+      page.setDefaultTimeout(10000)
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
@@ -313,34 +320,38 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     // if (
     //   currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
     // ) {
-    const sitekey = await page.$eval('.g-recaptcha', (element) =>
-      element.getAttribute('data-sitekey')
-    )
-    const requestId = await initiateCaptchaRequest(
-      captchaAPI,
-      currentUrl,
-      sitekey
-    )
+    // const sitekey = await page.$eval('.g-recaptcha', (element) =>
+    //   element.getAttribute('data-sitekey')
+    // )
+    // const requestId = await initiateCaptchaRequest(
+    //   captchaAPI,
+    //   currentUrl,
+    //   sitekey
+    // )
 
-    let response = await pollForRequestResults(captchaAPI, requestId)
+    // let response = await pollForRequestResults(captchaAPI, requestId)
 
-    let captchaResponse = await page.$eval(
-      '#g-recaptcha-response',
-      // eslint-disable-next-line no-return-assign
-      (el, response) => (el.innerHTML = response),
-      response
-    )
-    console.log('Checking captchaResponse', captchaResponse)
-    function handleCaptcha() {
-      console.log('inside callback')
-    }
-    handleCaptcha()
-    // await page.waitForTimeout(10000)
-    // await page.$eval('#recaptcha-token', (form) => form.submit())
+    // let captchaResponse = await page.$eval(
+    //   '#g-recaptcha-response',
+    //   // eslint-disable-next-line no-return-assign
+    //   (el, response) => (el.innerHTML = response),
+    //   response
+    // )
+    // console.log('Checking captchaResponse', captchaResponse)
+    // function handleCaptcha() {
+    //   console.log('inside callback')
+    // }
+    // handleCaptcha()
+    // await page.waitForSelector('iframe[title=reCAPTCHA]')
+    // const iframeHandle = await page.$('iframe[title=reCAPTCHA]')
+    // const frame = await iframeHandle.contentFrame()
+    await page.solveRecaptchas()
+    // await frame.$eval('#recaptcha-token', (form) => form.submit())
     if (process.env.NODE_ENV === 'production') {
       console.log('Inside if statement for 5 second time out')
       await page.waitForTimeout(5000)
     }
+    await page.waitForTimeout(2000)
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let newUrl = page.url()
     let bloombergInfo = []
