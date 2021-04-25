@@ -37,7 +37,7 @@ puppeteer.use(
       id: '2captcha',
       token: captchaAPI, // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
     },
-    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+    visualFeedback: false, // colorize reCAPTCHAs (violet = detected, green = solved)
   })
 )
 
@@ -214,17 +214,17 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     )
     let tradingViewInfo = []
     await page.waitForSelector('.news-item--card-14OMzC2A')
-    const articles = await page.$$('.js-news-widget-content > div')
+    const articles = await page.$$('.js-news-widget-content > *')
     console.log(articles.length)
     for (let i = 2; i < articles.length; i++) {
       // await page.waitForSelector(`.js-news-widget-content :nth-child(${i + 1})`)
-      await page.click(`.js-news-widget-content div:nth-of-type(${i + 1})`)
+      await page.click(`.js-news-widget-content :nth-child(${i + 1})`)
       console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
       await page.waitForTimeout(25)
       // const timeDate = await page.$$('.container-WM_9Aksw span')
       // const body = await page.$$('.description-1q24HCdy span p')
-      // const title = await page.$('.title-1q24HCdy')
+      // const title = await page.$('.title-2-Un7Upl')
       let articleInfo = {}
       const timeDate = await page.$$eval('.container-WM_9Aksw span', (els) =>
         els.map((el) => el.textContent)
@@ -239,33 +239,32 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       //     : spanText + ' '
       // }
       articleInfo.title = await page.$eval(
-        '.title-1q24HCdy',
+        '.title-2-Un7Upl',
         (el) => el.innerHTML
       )
       // articleInfo.title = await (
       //   await title.getProperty('textContent')
       // ).jsonValue()
       // let body = await page.$$('.description-1q24HCdy span p')
-      const body = await page.$$eval(
-        '.description-1q24HCdy span p',
-        (paragraphs) => paragraphs.map((paragraph) => paragraph.textContent)
+      const body = await page.$$eval('.body-2-Un7Upl span p', (paragraphs) =>
+        paragraphs.map((paragraph) => paragraph.textContent)
       )
       articleInfo.body = body.join(' ')
 
       // for (const p of body) {
-      //   let bodyText =
-      //           articleInfo.body = articleInfo.body
+      //   let bodyText = (articleInfo.body = articleInfo.body
+      //     ? articleInfo.body + ' \n' + bodyText
+      //     : bodyText)
+      // }
+      // for (const p of body) {
+      //   let bodyText = await (await p.getProperty('textContent')).jsonValue()
+      //   // let bodyText = await page.
+      //   articleInfo.body = articleInfo.body
       //     ? articleInfo.body + ' \n' + bodyText
       //     : bodyText
       // }
-      // for (const p of body) {
-      // let bodyText = await (await p.getProperty('textContent')).jsonValue()
-      // let bodyText = await page.
-      // articleInfo.body = articleInfo.body
-      // ? articleInfo.body + ' \n' + bodyText
-      // : bodyText
-      // }
       tradingViewInfo.push(articleInfo)
+      // console.log(articleInfo)
       await page.waitForTimeout(25)
       await page.keyboard.press('Escape')
       // console.log(articleInfo.timeDate)
@@ -297,6 +296,10 @@ const BloombergOptions = {
   headless: true,
   slowMo: 10,
   defaultViewport: null,
+  args: [
+    '--disable-web-security',
+    '--disable-features=IsolateOrigins,site-per-process',
+  ],
 }
 
 // eslint-disable-next-line max-statements
@@ -341,18 +344,34 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     // function handleCaptcha() {
     //   console.log('inside callback')
     // }
+    await page.waitForTimeout(5000)
+    const iframeHandle = await page.$(
+      'div#px-captcha > div > div > div > iframe'
+    )
+    const frame = await iframeHandle.contentFrame()
+    console.log(frame)
+    // const value = await frame.$eval('#recaptcha-token', (el) =>
+    //   el.getAttribute('value)')
+    // )
+    // console.log(value)
+    await frame.click('#recaptcha-anchor')
+    await page.waitForTimeout(3000)
     // handleCaptcha()
-    // await page.waitForSelector('iframe[title=reCAPTCHA]')
-    // const iframeHandle = await page.$('iframe[title=reCAPTCHA]')
-    // const frame = await iframeHandle.contentFrame()
     await page.solveRecaptchas()
+
+    await page.waitForSelector('#body > div > div:nth-child(4) > iframe')
+    const iframeHandle2 = await page.$(
+      '#body > div > div:nth-child(4) > iframe'
+    )
+    const frame2 = await iframeHandle2.contentFrame()
+    await frame2.click('#recaptcha-verify-button')
     // await frame.$eval('#recaptcha-token', (form) => form.submit())
     if (process.env.NODE_ENV === 'production') {
       console.log('Inside if statement for 5 second time out')
       await page.waitForTimeout(5000)
     }
     await page.waitForTimeout(2000)
-    await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
+    // await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let newUrl = page.url()
     let bloombergInfo = []
     console.log('newUrl', newUrl)
@@ -394,7 +413,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     next(err)
   } finally {
     console.log('Inside Bloomberg finally')
-    // await browser.close()
+    await browser.close()
   }
 })
 async function initiateCaptchaRequest(apiKey, pageurl, sitekey) {
