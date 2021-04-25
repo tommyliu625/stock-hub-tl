@@ -217,61 +217,39 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     const articles = await page.$$('.js-news-widget-content > *')
     console.log(articles.length)
     for (let i = 2; i < articles.length; i++) {
-      // await page.waitForSelector(`.js-news-widget-content :nth-child(${i + 1})`)
       await page.click(`.js-news-widget-content :nth-child(${i + 1})`)
       console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
-      await page.waitForTimeout(25)
-      // const timeDate = await page.$$('.container-WM_9Aksw span')
-      // const body = await page.$$('.description-1q24HCdy span p')
-      // const title = await page.$('.title-2-Un7Upl')
-      let articleInfo = {}
-      const timeDate = await page.$$eval('.container-WM_9Aksw span', (els) =>
-        els.map((el) => el.textContent)
-      )
-      articleInfo.timeDate = timeDate.join(' ')
-      // for (const texts of timeDate) {
-      //   let spanText = await (
-      //     await texts.getProperty('textContent')
-      //   ).jsonValue()
-      //   articleInfo.timeDate = articleInfo.timeDate
-      //     ? articleInfo.timeDate + ' ' + spanText
-      //     : spanText + ' '
-      // }
-      articleInfo.title = await page.$eval(
-        '.title-2-Un7Upl',
-        (el) => el.innerHTML
-      )
-      // articleInfo.title = await (
-      //   await title.getProperty('textContent')
-      // ).jsonValue()
-      // let body = await page.$$('.description-1q24HCdy span p')
-      const body = await page.$$eval('.body-2-Un7Upl span p', (paragraphs) =>
-        paragraphs.map((paragraph) => paragraph.textContent)
-      )
-      articleInfo.body = body.join(' ')
+      let timeDate = await page.$('.container-WM_9Aksw')
+      let title = await page.$('.title-2-Un7Upl')
+      let body = await page.$('.body-2-Un7Upl')
+      if (timeDate && title && body) {
+        await page.waitForTimeout(25)
+        let articleInfo = {}
+        timeDate = await page.$$eval('.container-WM_9Aksw span', (els) =>
+          els.map((el) => el.textContent)
+        )
+        articleInfo.timeDate = timeDate.join(' ')
+        articleInfo.title = await page.$eval(
+          '.title-2-Un7Upl',
+          (el) => el.innerHTML
+        )
+        body = await page.$$eval('.body-2-Un7Upl span p', (paragraphs) =>
+          paragraphs.map((paragraph) => paragraph.textContent)
+        )
+        articleInfo.body = body.join(' ')
 
-      // for (const p of body) {
-      //   let bodyText = (articleInfo.body = articleInfo.body
-      //     ? articleInfo.body + ' \n' + bodyText
-      //     : bodyText)
-      // }
-      // for (const p of body) {
-      //   let bodyText = await (await p.getProperty('textContent')).jsonValue()
-      //   // let bodyText = await page.
-      //   articleInfo.body = articleInfo.body
-      //     ? articleInfo.body + ' \n' + bodyText
-      //     : bodyText
-      // }
-      tradingViewInfo.push(articleInfo)
-      // console.log(articleInfo)
-      await page.waitForTimeout(25)
-      await page.keyboard.press('Escape')
-      // console.log(articleInfo.timeDate)
-      // console.log(articleInfo.title)
+        tradingViewInfo.push(articleInfo)
+        // console.log(articleInfo)
+        await page.waitForTimeout(25)
+        await page.keyboard.press('Escape')
+        // console.log(articleInfo.timeDate)
+        // console.log(articleInfo.title)
+      }
+      // await page.screenshot({path: 'example.png'})
+      // await browser.close()
     }
-    // await page.screenshot({path: 'example.png'})
-    await browser.close()
+
     if (process.env.NODE_ENV === 'production') {
       res.write(JSON.stringify(tradingViewInfo))
       res.end()
@@ -288,6 +266,7 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
 
 const BloombergHeroku = {
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  slowMo: 10,
 }
 
 const BloombergOptions = {
@@ -320,58 +299,27 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
     console.log('currentUrl b4 captchaSolver', currentUrl)
-    // if (
-    //   currentUrl !== `https://www.bloomberg.com/quote/${req.params.ticker}:US`
-    // ) {
-    // const sitekey = await page.$eval('.g-recaptcha', (element) =>
-    //   element.getAttribute('data-sitekey')
-    // )
-    // const requestId = await initiateCaptchaRequest(
-    //   captchaAPI,
-    //   currentUrl,
-    //   sitekey
-    // )
 
-    // let response = await pollForRequestResults(captchaAPI, requestId)
-
-    // let captchaResponse = await page.$eval(
-    //   '#g-recaptcha-response',
-    //   // eslint-disable-next-line no-return-assign
-    //   (el, response) => (el.innerHTML = response),
-    //   response
-    // )
-    // console.log('Checking captchaResponse', captchaResponse)
-    // function handleCaptcha() {
-    //   console.log('inside callback')
-    // }
-    await page.waitForTimeout(5000)
+    // await page.waitForTimeout(1000)
     const iframeHandle = await page.$(
       'div#px-captcha > div > div > div > iframe'
     )
     const frame = await iframeHandle.contentFrame()
-    console.log(frame)
-    // const value = await frame.$eval('#recaptcha-token', (el) =>
-    //   el.getAttribute('value)')
-    // )
-    // console.log(value)
     await frame.click('#recaptcha-anchor')
-    await page.waitForTimeout(3000)
-    // handleCaptcha()
+    await page.waitForTimeout(1000)
     await page.solveRecaptchas()
-
-    await page.waitForSelector('#body > div > div:nth-child(4) > iframe')
-    const iframeHandle2 = await page.$(
-      '#body > div > div:nth-child(4) > iframe'
-    )
+    await page.waitForTimeout(1000)
+    // await page.waitForSelector('#body > div > div:nth-child(4) > iframe')
+    const iframeHandle2 = await page.$('body > div > div:nth-child(4) > iframe')
     const frame2 = await iframeHandle2.contentFrame()
     await frame2.click('#recaptcha-verify-button')
     // await frame.$eval('#recaptcha-token', (form) => form.submit())
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Inside if statement for 5 second time out')
-      await page.waitForTimeout(5000)
-    }
-    await page.waitForTimeout(2000)
-    // await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
+    // if (process.env.NODE_ENV === 'production') {
+    //   console.log('Inside if statement for 5 second time out')
+    //   await page.waitForTimeout(5000)
+    // }
+    // await page.waitForTimeout(2000)
+    await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let newUrl = page.url()
     let bloombergInfo = []
     console.log('newUrl', newUrl)
@@ -402,7 +350,7 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     // await browser.close()
     console.log('bloomberg info', bloombergInfo)
     if (bloombergInfo.length === 0) {
-      res.status(404)
+      res.status(404).send('Error grabbing data')
     } else if (process.env.NODE_ENV === 'production') {
       res.write(JSON.stringify(bloombergInfo))
       res.end()
@@ -416,49 +364,5 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     await browser.close()
   }
 })
-async function initiateCaptchaRequest(apiKey, pageurl, sitekey) {
-  const formData = {
-    method: 'userrecaptcha',
-    googlekey: sitekey,
-    key: captchaAPI,
-    pageurl: pageurl,
-    json: 1,
-  }
-  console.log('Submitting solution request to 2captcha for', pageurl)
-  const response = await axios.post('http://2captcha.com/in.php', formData)
-  return response.data.request
-}
-
-const timeout = (millis) =>
-  new Promise((resolve) => setTimeout(resolve, millis))
-
-async function pollForRequestResults(
-  key,
-  id,
-  retries = 45,
-  interval = 1000,
-  delay = 1000
-) {
-  console.log(`waiting for ${delay} milliseconds`)
-  await timeout(delay)
-  return poll({
-    taskFn: requestCaptchaResults(key, id),
-    interval,
-    retries,
-  })
-}
-
-function requestCaptchaResults(apiKey, requestId) {
-  const url = `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`
-  return async function () {
-    return new Promise(async function (resolve, reject) {
-      console.log('Polling for response...')
-      const {data} = await axios.get(url)
-      console.log(data)
-      if (data.status === 0) return reject(data.request)
-      resolve(data.request)
-    })
-  }
-}
 
 module.exports = router
