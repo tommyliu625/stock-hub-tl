@@ -375,7 +375,7 @@ const MotleyHeroku = {
 const MotleyOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  headless: false,
+  headless: true,
   // slowMo: 10,
   defaultViewport: {width: 1700, height: 768},
 }

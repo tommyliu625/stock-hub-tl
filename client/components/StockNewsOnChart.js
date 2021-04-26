@@ -105,6 +105,11 @@ class StockNews extends React.Component {
                   <button
                     type="button"
                     value={value}
+                    style={
+                      value === selectedCategory && this.props.stock.company
+                        ? {'background-color': '#3f51b5', color: 'white'}
+                        : null
+                    }
                     onClick={this.changeCategory}
                   >
                     {value}
@@ -122,7 +127,7 @@ class StockNews extends React.Component {
 const mapState = (state) => {
   return {
     stocknews: state.stocknews,
-    // stock: state.singleStock,
+    stock: state.singleStock,
   }
 }
 

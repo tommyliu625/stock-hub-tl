@@ -193,6 +193,11 @@ class StockNews extends React.Component {
                     <button
                       type="button"
                       value={value}
+                      style={
+                        value === selectedCategory && hasSubmitted
+                          ? {'background-color': '#3f51b5', color: 'white'}
+                          : null
+                      }
                       onClick={this.changeCategory}
                     >
                       {value}
