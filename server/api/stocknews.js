@@ -46,12 +46,15 @@ const extendTimeoutMiddleware = (req, res, next) => {
   let isFinished = false
   let isDataSent = false
   // Only extend the timeout for API requests
-  console.log('req.url', req.url)
   if (process.env.NODE_ENV !== 'production') {
     next()
     return
-  }
-  if (!req.url.includes('/bloomberg') && !req.url.includes('/tradingview')) {
+  } else if (
+    !req.url.includes('/bloomberg') &&
+    !req.url.includes('/tradingview') &&
+    !req.url.includes('/motleyfool')
+  ) {
+    console.log('req.url', req.url)
     next()
     return
   }
