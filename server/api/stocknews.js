@@ -365,4 +365,84 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
   }
 })
 
+const MotleyHeroku = {
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+}
+
+const MotleyOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: false,
+  // slowMo: 10,
+  defaultViewport: {width: 1700, height: 768},
+}
+
+router.get('/motleyfool/:ticker', async (req, res, next) => {
+  let browser
+  if (process.env.NODE_ENV === 'production') {
+    browser = await puppeteer.launch(MotleyHeroku)
+  } else {
+    browser = await puppeteer.launch(MotleyOptions)
+  }
+  try {
+    const exchange = allStocks.find((stock) => {
+      return stock.Symbol === req.params.ticker.toUpperCase()
+    }).exchange
+    let ticker = req.params.ticker.toUpperCase()
+
+    const page = await browser.newPage()
+    await page.goto('https://www.fool.com/')
+    if (process.env.NODE_ENV !== 'production') {
+      page.setDefaultTimeout(10000)
+    }
+    await page.waitForTimeout(500)
+    await page.type('#fool-search', ticker, {delay: 1})
+    await page.waitForTimeout(1000)
+    await page.keyboard.press('Enter')
+    let motleyInfo = []
+    await page.waitForSelector('#page-1')
+    const articleOne = await page.$$('#page-1 > article')
+    console.log(articleOne.length)
+    for (let i = 0; i < articleOne.length; i++) {
+      let obj = {}
+      let link = await articleOne[i].$eval('a', (a) => a.getAttribute('href'))
+      obj.link = `https://www.fool.com${link}`
+      let author = await articleOne[i].$eval(
+        '.story-date-author',
+        (el) => el.innerHTML
+      )
+      console.log(i, author)
+      obj.author = author
+      motleyInfo.push(obj)
+    }
+    // await page.click('#load-more')
+    // await page.waitForSelector('#page-2 > article')
+    // const articleTwo = await page.$$('#page-2 > article')
+    // for (let i = 0; i < articleTwo.length; i++) {
+    //   let obj = {}
+    //   let link = await articleTwo[i].$eval('a', (a) => a.getAttribute('href'))
+    //   obj.link = `https://www.fool.com${link}`
+    //   let author = await articleTwo[i].$eval(
+    //     '.story-date-author',
+    //     (el) => el.innerHTML
+    //   )
+    //   obj.author = author
+    // motleyInfo.push(obj)
+    // }
+    if (!motleyInfo.length) {
+      res.status(404).send('Unable to fetch data')
+    } else if (process.env.NODE_ENV === 'production') {
+      res.write(JSON.stringify(motleyInfo))
+      res.end()
+    } else {
+      res.send(motleyInfo)
+    }
+  } catch (err) {
+    next(err)
+  } finally {
+    console.log('Inside tradingview finally, before browser close()')
+    await browser.close()
+  }
+})
+
 module.exports = router

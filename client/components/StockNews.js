@@ -1,12 +1,18 @@
 /* eslint-disable react/jsx-key */
 import React from 'react'
 import {connect} from 'react-redux'
-import {resetTV, resetBloomberg, getAllNews} from '../store/stocknewsReducer'
+import {
+  resetTV,
+  resetBloomberg,
+  resetMotleyFool,
+  getAllNews,
+} from '../store/stocknewsReducer'
 import {fetchStocks} from '../store/stockListReducer'
 import FinvizComponent from './FinvizComponent'
 import WSJComponent from './WSJComponent'
 import TradingViewComponent from './TradingViewComponent'
 import BloombergComponent from './BloombergComponent'
+import MotleyFoolComponent from './MotleyFoolComponent'
 
 class StockNews extends React.Component {
   constructor(props) {
@@ -32,6 +38,7 @@ class StockNews extends React.Component {
     } else {
       this.props.resetTV()
       this.props.resetBloomberg()
+      this.props.resetMotleyFool()
     }
     const response = await this.props.getAllNews(ticker)
     console.log(response)
@@ -82,6 +89,23 @@ class StockNews extends React.Component {
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
           return <WSJComponent links={links} />
+        })
+      }
+    } else if (selectedCategory === 'MotleyFool') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.MotleyFool.length && hasSubmitted) {
+        selectedNewsJSX = (
+          <div className="motleyfool-detail-div">
+            <div>
+              Grabbing MotleyFool data. This may take up to 10 seconds...{' '}
+              <img src="loading-spinner.gif" width="50px" height="50px" />
+            </div>
+          </div>
+        )
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <MotleyFoolComponent links={links} />
         })
       }
     } else if (selectedCategory === 'TradingView') {
@@ -197,6 +221,7 @@ const mapDispatch = (dispatch) => {
     fetchStocks: () => dispatch(fetchStocks()),
     resetTV: () => dispatch(resetTV()),
     resetBloomberg: () => dispatch(resetBloomberg()),
+    resetMotleyFool: () => dispatch(resetMotleyFool()),
     getAllNews: (ticker) => dispatch(getAllNews(ticker)),
   }
 }

@@ -5,6 +5,7 @@ import FinvizComponent from './FinvizComponent'
 import WSJComponent from './WSJComponent'
 import TradingViewComponent from './TradingViewComponent'
 import BloombergComponent from './BloombergComponent'
+import MotleyFoolComponent from './MotleyFoolComponent'
 
 class StockNews extends React.Component {
   constructor(props) {
@@ -39,6 +40,23 @@ class StockNews extends React.Component {
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
           return <WSJComponent links={links} />
+        })
+      }
+    } else if (selectedCategory === 'MotleyFool') {
+      if (stocknews[selectedCategory].length === 1) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      } else if (!stocknews.MotleyFool.length) {
+        selectedNewsJSX = (
+          <div className="motleyfool-detail-div">
+            <div>
+              Grabbing MotleyFool data. This may take up to 10 seconds...{' '}
+              <img src="loading-spinner.gif" width="50px" height="50px" />
+            </div>
+          </div>
+        )
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <MotleyFoolComponent links={links} />
         })
       }
     } else if (selectedCategory === 'TradingView') {

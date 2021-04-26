@@ -4,7 +4,12 @@ import React from 'react'
 import {connect} from 'react-redux'
 import {fetchStocks} from '../store/stockListReducer'
 import {fetchStock, getCompany} from '../store/singleStockReducer'
-import {resetTV, resetBloomberg, getAllNews} from '../store/stocknewsReducer'
+import {
+  resetTV,
+  resetBloomberg,
+  resetMotleyFool,
+  getAllNews,
+} from '../store/stocknewsReducer'
 
 class SearchBar extends React.Component {
   constructor() {
@@ -51,6 +56,7 @@ class SearchBar extends React.Component {
       } else {
         this.props.resetTV()
         this.props.resetBloomberg()
+        this.props.resetMotleyFool()
       }
       this.props.fetchStock({
         keyword: keyword.toUpperCase(),
@@ -205,6 +211,7 @@ const mapDispatch = (dispatch) => {
     getCompany: (company) => dispatch(getCompany(company)),
     resetTV: () => dispatch(resetTV()),
     resetBloomberg: () => dispatch(resetBloomberg()),
+    resetMotleyFool: () => dispatch(resetMotleyFool()),
     getAllNews: (ticker) => dispatch(getAllNews(ticker)),
   }
 }

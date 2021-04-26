@@ -2,6 +2,8 @@ import axios from 'axios'
 
 const GET_FINVIZ = 'GET_FINVIZ'
 const GET_WSJ = 'GET_WSJ'
+const GET_MOTLEYFOOL = 'GET_MOTLEYFOOL'
+const RESET_MOTLEYFOOL = 'RESET_MOTLEYFOOL'
 const GET_TRADINGVIEW = 'GET_TRADINGVIEW'
 const RESET_TRADINGVIEW = 'RESET_TRADINGVIEW'
 const GET_BLOOMBERG = 'GET_BLOOMBERG'
@@ -21,6 +23,20 @@ export const setWSJ = (news) => {
   }
 }
 
+export const setMotleyFool = (news) => {
+  return {
+    type: GET_MOTLEYFOOL,
+    motleyFoolNews: news,
+  }
+}
+
+export const resetMotleyFool = () => {
+  return {
+    type: RESET_MOTLEYFOOL,
+    motleyFoolNews: [],
+  }
+}
+
 export const setTradingView = (news) => {
   return {
     type: GET_TRADINGVIEW,
@@ -28,17 +44,17 @@ export const setTradingView = (news) => {
   }
 }
 
-export const setBloomberg = (news) => {
-  return {
-    type: GET_BLOOMBERG,
-    bloombergNews: news,
-  }
-}
-
 export const resetTV = () => {
   return {
     type: RESET_TRADINGVIEW,
     tradingViewNews: [],
+  }
+}
+
+export const setBloomberg = (news) => {
+  return {
+    type: GET_BLOOMBERG,
+    bloombergNews: news,
   }
 }
 
@@ -70,6 +86,21 @@ export const fetchWSJNews = (ticker) => {
       return {Successful: {WSJ: 'Successfully received WSJ data'}}
     } catch (err) {
       dispatch(setWSJ([`Unable to fetch WSJ data for ${ticker}.`]))
+      return err.response.data
+    }
+  }
+}
+
+export const fetchMotleyFoolNews = (ticker) => {
+  return async (dispatch) => {
+    try {
+      const {data} = await axios.get(`/api/stocknews/motleyfool/${ticker}`)
+      dispatch(setMotleyFool(data))
+      return {Successful: {MotleyFool: 'Successfully received MotleyFool data'}}
+    } catch (err) {
+      dispatch(
+        setMotleyFool([`Unable to fetch MotleyFool data for ${ticker}.`])
+      )
       return err.response.data
     }
   }
@@ -126,6 +157,7 @@ export const getAllNews = (ticker) => {
       const message = await Promise.all([
         dispatch(fetchFinvizNews(ticker)),
         dispatch(fetchWSJNews(ticker)),
+        dispatch(fetchMotleyFoolNews(ticker)),
         dispatch(fetchTradingViewNews(ticker)),
         dispatch(fetchBloomberg(ticker)),
       ])
@@ -140,16 +172,22 @@ export const getAllNews = (ticker) => {
 const initState = {
   finviz: [],
   WSJ: [],
+  MotleyFool: [],
   TradingView: [],
   Bloomberg: [],
 }
 
+// eslint-disable-next-line complexity
 export default (state = initState, action) => {
   switch (action.type) {
     case GET_FINVIZ:
       return {...state, finviz: action.finvizNews}
     case GET_WSJ:
       return {...state, WSJ: action.WSJNews}
+    case GET_MOTLEYFOOL:
+      return {...state, MotleyFool: action.motleyFoolNews}
+    case RESET_MOTLEYFOOL:
+      return {...state, MotleyFool: []}
     case GET_TRADINGVIEW:
       return {...state, TradingView: action.tradingViewNews}
     case RESET_TRADINGVIEW:
