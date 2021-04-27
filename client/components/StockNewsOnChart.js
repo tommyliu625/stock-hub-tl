@@ -27,24 +27,24 @@ class StockNews extends React.Component {
     let selectedNewsJSX
     let {selectedCategory} = this.state
     if (selectedCategory === 'finviz') {
-      if (stocknews[selectedCategory].length === 1) {
-        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
           return <FinvizComponent links={links} />
         })
       }
     } else if (selectedCategory === 'WSJ') {
-      if (stocknews[selectedCategory].length === 1) {
-        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
           return <WSJComponent links={links} />
         })
       }
     } else if (selectedCategory === 'MotleyFool') {
-      if (stocknews[selectedCategory].length === 1) {
-        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
       } else if (!stocknews.MotleyFool.length) {
         selectedNewsJSX = (
           <div className="motleyfool-detail-div">
@@ -60,8 +60,8 @@ class StockNews extends React.Component {
         })
       }
     } else if (selectedCategory === 'TradingView') {
-      if (stocknews[selectedCategory].length === 1) {
-        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
       } else if (!stocknews.TradingView.length) {
         selectedNewsJSX = (
           <div className="tradingview-detail-div">
@@ -77,8 +77,8 @@ class StockNews extends React.Component {
         })
       }
     } else if (selectedCategory === 'Bloomberg') {
-      if (stocknews.Bloomberg.length === 1) {
-        selectedNewsJSX = <div>{stocknews[selectedCategory][0]}</div>
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
       } else if (!stocknews.Bloomberg.length) {
         selectedNewsJSX = (
           <div className="bloomberg-detail-div">
@@ -107,7 +107,7 @@ class StockNews extends React.Component {
                     value={value}
                     style={
                       value === selectedCategory && this.props.stock.company
-                        ? {'background-color': '#3f51b5', color: 'white'}
+                        ? {backgroundColor: '#3f51b5', color: 'white'}
                         : null
                     }
                     onClick={this.changeCategory}

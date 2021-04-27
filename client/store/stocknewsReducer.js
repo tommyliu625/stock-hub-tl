@@ -72,7 +72,7 @@ export const fetchFinvizNews = (ticker) => {
       dispatch(setFinviz(data))
       return {Successful: {finviz: 'Successfully received finviz data'}}
     } catch (err) {
-      dispatch(setFinviz([`Unable to fetch finviz data for ${ticker}.`]))
+      dispatch(setFinviz({error: `Unable to fetch finviz data for ${ticker}.`}))
       return err.response.data
     }
   }
@@ -85,7 +85,7 @@ export const fetchWSJNews = (ticker) => {
       dispatch(setWSJ(data))
       return {Successful: {WSJ: 'Successfully received WSJ data'}}
     } catch (err) {
-      dispatch(setWSJ([`Unable to fetch WSJ data for ${ticker}.`]))
+      dispatch(setWSJ({error: `Unable to fetch WSJ data for ${ticker}.`}))
       return err.response.data
     }
   }
@@ -95,11 +95,17 @@ export const fetchMotleyFoolNews = (ticker) => {
   return async (dispatch) => {
     try {
       const {data} = await axios.get(`/api/stocknews/motleyfool/${ticker}`)
-      dispatch(setMotleyFool(data))
+      console.log(data)
+      if (!Array.isArray(data)) {
+        let newData = data.slice(1)
+        dispatch(setMotleyFool(JSON.parse(newData)))
+      } else {
+        dispatch(setMotleyFool(data))
+      }
       return {Successful: {MotleyFool: 'Successfully received MotleyFool data'}}
     } catch (err) {
       dispatch(
-        setMotleyFool([`Unable to fetch MotleyFool data for ${ticker}.`])
+        setMotleyFool({error: `Unable to fetch MotleyFool data for ${ticker}.`})
       )
       return err.response.data
     }
@@ -110,7 +116,7 @@ export const fetchTradingViewNews = (ticker) => {
   return async (dispatch) => {
     try {
       const {data} = await axios.get(`/api/stocknews/tradingview/${ticker}`)
-      console.log('tradingview data', data)
+      // console.log('tradingview data', data)
       if (!Array.isArray(data)) {
         let newData = data.slice(1)
         dispatch(setTradingView(JSON.parse(newData)))
@@ -122,7 +128,9 @@ export const fetchTradingViewNews = (ticker) => {
       }
     } catch (err) {
       dispatch(
-        setTradingView([`Unable to fetch TradingView data for ${ticker}.`])
+        setTradingView({
+          error: `Unable to fetch TradingView data for ${ticker}.`,
+        })
       )
       return err.response.data
     }
@@ -133,7 +141,7 @@ export const fetchBloomberg = (ticker) => {
   return async (dispatch) => {
     try {
       const {data} = await axios.get(`/api/stocknews/bloomberg/${ticker}`)
-      console.log('bloomberg data', data)
+      // console.log('bloomberg data', data)
       if (!Array.isArray(data)) {
         let newData = data.slice(1)
         dispatch(setBloomberg(JSON.parse(newData)))
@@ -145,7 +153,9 @@ export const fetchBloomberg = (ticker) => {
       }
     } catch (err) {
       console.log(err)
-      dispatch(setBloomberg([`Unable to fetch Bloomberg data for ${ticker}.`]))
+      dispatch(
+        setBloomberg({error: `Unable to fetch Bloomberg data for ${ticker}.`})
+      )
       return err.response.data
     }
   }

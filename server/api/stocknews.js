@@ -221,7 +221,7 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     console.log(articles.length)
     for (let i = 2; i < articles.length; i++) {
       await page.click(`.js-news-widget-content :nth-child(${i + 1})`)
-      console.log(i)
+      // console.log(i)
       // await page.waitForSelector('.dialog-3Q8J4Pu0')
       let timeDate = await page.$('.container-WM_9Aksw')
       let title = await page.$('.title-2-Un7Upl')
@@ -252,11 +252,15 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
       // await page.screenshot({path: 'example.png'})
       // await browser.close()
     }
-
-    if (process.env.NODE_ENV === 'production') {
+    if (tradingViewInfo.length === 0) {
+      console.log('Unable to retrieve TradingView data')
+      res.status(404).send('Error grabbing data')
+    } else if (process.env.NODE_ENV === 'production') {
+      console.log('Successfully retrieved TradingView data')
       res.write(JSON.stringify(tradingViewInfo))
       res.end()
     } else {
+      console.log('Successfully retrieved TradingView data')
       res.send(tradingViewInfo)
     }
   } catch (err) {
@@ -351,13 +355,16 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     // await page.screenshot({path: 'example.png'})
     // await browser.close()
-    console.log('bloomberg info', bloombergInfo)
+    // console.log('bloomberg info', bloombergInfo)
     if (bloombergInfo.length === 0) {
+      console.log('Unable to retrieve bloomberg data')
       res.status(404).send('Error grabbing data')
     } else if (process.env.NODE_ENV === 'production') {
+      console.log('Successfully retrieved bloomberg data')
       res.write(JSON.stringify(bloombergInfo))
       res.end()
     } else {
+      console.log('Successfully retrieved bloomberg data')
       res.send(bloombergInfo)
     }
   } catch (err) {
@@ -400,7 +407,7 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
     }
     await page.waitForTimeout(500)
     await page.type('#fool-search', ticker, {delay: 1})
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(1500)
     await page.keyboard.press('Enter')
     let motleyInfo = []
     await page.waitForSelector('#page-1')
@@ -433,11 +440,14 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
     // motleyInfo.push(obj)
     // }
     if (!motleyInfo.length) {
+      console.log('Unable to retrieve MotleyFool data')
       res.status(404).send('Unable to fetch data')
     } else if (process.env.NODE_ENV === 'production') {
+      console.log('Successfully retrieved Motleyfool data')
       res.write(JSON.stringify(motleyInfo))
       res.end()
     } else {
+      console.log('Successfully retrieved Motleyfool data')
       res.send(motleyInfo)
     }
   } catch (err) {
