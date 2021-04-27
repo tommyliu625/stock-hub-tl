@@ -2,9 +2,10 @@
 const router = require('express').Router()
 let alphaKey =
   process.env.NODE_ENV === 'production'
-    ? JSON.parse(process.env.alphaKey)
-    : require('../../secrets').alphaKey
-const alpha = require('alphavantage')(alphaKey)
+    ? // ? JSON.parse(process.env.alphaKey)
+      process.env.alphaKey
+    : require('../../secrets').alphaKey.key
+const alpha = require('alphavantage')({key: alphaKey})
 
 // api/daily-price/:ticker
 router.post('/:ticker', async (req, res, next) => {
