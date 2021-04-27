@@ -1,6 +1,10 @@
 /* eslint-disable camelcase */
 const router = require('express').Router()
-const alpha = require('alphavantage')({key: 'SMZ4S084COH57OMS'})
+let alphaKey =
+  process.env.NODE_ENV === 'production'
+    ? JSON.parse(process.env.alphaKey)
+    : require('../../secrets').alphaKey
+const alpha = require('alphavantage')(alphaKey)
 
 // api/historical-price-weekly/1min/:ticker
 router.post('/:ticker', async (req, res, next) => {
