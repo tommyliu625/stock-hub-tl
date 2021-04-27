@@ -7,7 +7,10 @@ Stock-Hub-TL is an all-in-one application to view stock charts and stock news. T
 <a href="https://stock-hub-tl.herokuapp.com/"> Stock-Hub-TL </a>
 
 ## Screenshots
+### Stock Chart with news
 ![Stock Chart and Stock News](https://stock-hub-tl.s3.amazonaws.com/Home+Recording+-+GIF.gif)
+
+### Stock news only
 ![Stock News](https://stock-hub-tl.s3.amazonaws.com/Stock+News+-+GIF.gif)
 
 ## Tech-Stack
