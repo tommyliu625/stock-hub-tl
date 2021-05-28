@@ -8,11 +8,6 @@ const PORT = process.env.PORT || 1000
 const server = app.listen(PORT, () =>
   console.log(`Feeling chatty on port ${PORT}`)
 )
-const io = require('socket.io')(server)
-
-// handle sockets
-require('./socket')(io)
-db.sync().then(() => console.log('Database is synced'))
 
 // middleware
 // logging middleware

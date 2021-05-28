@@ -7,6 +7,7 @@ const cheerio = require('cheerio')
 // puppeteer-extra is a drop-in replacement for puppeteer,
 // it augments the installed puppeteer with plugin functionality
 const puppeteer = require('puppeteer-extra')
+const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
 
 // add recaptcha plugin and provide it your 2captcha token (= their apiKey)
 // 2captcha is the builtin solution provider but others would work as well.
@@ -276,13 +277,13 @@ const BloombergHeroku = {
 const BloombergOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  headless: false,
+  headless: true,
   slowMo: 10,
   defaultViewport: null,
-  // args: [
-  //   '--disable-web-security',
-  //   '--disable-features=IsolateOrigins,site-per-process',
-  // ],
+  args: [
+    '--disable-web-security',
+    '--disable-features=IsolateOrigins,site-per-process',
+  ],
 }
 
 // eslint-disable-next-line max-statements
@@ -302,27 +303,25 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
     }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let currentUrl = page.url()
+    // await page.waitForTimeout(200000)
     console.log('currentUrl b4 captchaSolver', currentUrl)
-
-    // await page.waitForTimeout(1000)
-    const iframeHandle = await page.$(
-      'div#px-captcha > div > div > div > iframe'
-    )
-    const frame = await iframeHandle.contentFrame()
-    await frame.click('#recaptcha-anchor')
-    await page.waitForTimeout(1000)
-    await page.solveRecaptchas()
-    await page.waitForTimeout(1000)
-    // await page.waitForSelector('#body > div > div:nth-child(4) > iframe')
-    const iframeHandle2 = await page.$('body > div > div:nth-child(4) > iframe')
-    const frame2 = await iframeHandle2.contentFrame()
-    await frame2.click('#recaptcha-verify-button')
-    // await frame.$eval('#recaptcha-token', (form) => form.submit())
-    // if (process.env.NODE_ENV === 'production') {
-    //   console.log('Inside if statement for 5 second time out')
-    //   await page.waitForTimeout(5000)
-    // }
-    // await page.waitForTimeout(2000)
+    console.log('page.url', page.url())
+    if (page.url().includes('tosv2')) {
+      await page.waitForSelector('#px-captcha > div > div > div > iframe')
+      const iframeHandle = await page.$(
+        '#px-captcha > div > div > div > iframe'
+      )
+      const frame = await iframeHandle.contentFrame()
+      await frame.click('#recaptcha-anchor')
+      await page.waitForTimeout(1000)
+      await page.solveRecaptchas()
+      await page.waitForTimeout(1000)
+      // const iframeHandle2 = await page.$(
+      //   '#px-captcha > div > div > div > iframe'
+      // )
+      // const frame2 = await iframeHandle2.contentFrame()
+      // await frame2.click('#recaptcha-verify-button')
+    }
     await page.goto(`https://www.bloomberg.com/quote/${req.params.ticker}:US`)
     let newUrl = page.url()
     let bloombergInfo = []
@@ -331,22 +330,25 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
       newUrl ===
       `https://www.bloomberg.com/quote/${req.params.ticker.toUpperCase()}:US`
     ) {
-      const articles = await page.$$('#right-rail .pressReleaseItem__e9aac8ef')
+      // await page.waitForTimeout(200000)
+      const articles = await page.$$('.pressReleaseItem__da8ddb6337')
+      console.log(articles)
+      console.log(articles.length)
       for (let i = 0; i < articles.length; i++) {
         let obj = {}
         let link = await articles[i].$eval('a', (a) => a.getAttribute('href'))
         let headline = await articles[i].$eval(
-          '.headline__eb73356e',
+          '.headline__3e5c217c11',
           (el) => el.innerHTML
         )
         let date = await articles[i].$eval(
-          '.updatedAt__3fe411c9',
+          '.updatedAt__560a44b6d7',
           (el) => el.innerHTML
         )
         obj.headline = headline
         obj.link = link
         obj.date = date
-        // console.log(obj)
+        console.log(obj)
         bloombergInfo.push(obj)
       }
     }
@@ -392,9 +394,9 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
     browser = await puppeteer.launch(MotleyOptions)
   }
   try {
-    const exchange = allStocks.find((stock) => {
-      return stock.Symbol === req.params.ticker.toUpperCase()
-    }).exchange
+    // const exchange = allStocks.find((stock) => {
+    //   return stock.Symbol === req.params.ticker.toUpperCase()
+    // }).exchange
     let ticker = req.params.ticker.toUpperCase()
 
     const page = await browser.newPage()
