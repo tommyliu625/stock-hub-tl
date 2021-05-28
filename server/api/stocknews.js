@@ -12,9 +12,6 @@ const puppeteer = require('puppeteer-extra')
 // 2captcha is the builtin solution provider but others would work as well.
 // Please note: You need to add funds to your 2captcha account for this to work
 
-const poll = require('promise-poller').default
-const allStocks = require('../StockListWithExchanges/tickerWithExchanges')
-
 let captchaAPI =
   process.env.NODE_ENV === 'production'
     ? process.env.captchaAPI
@@ -58,7 +55,7 @@ const extendTimeoutMiddleware = (req, res, next) => {
     next()
     return
   }
-  console.log('after next')
+  console.log('Trying to extend', req.url)
   res.once('finish', () => {
     isFinished = true
   })
@@ -90,7 +87,7 @@ const extendTimeoutMiddleware = (req, res, next) => {
             'Content-Type': 'application/json',
           })
         }
-
+        console.log('inside wait and send')
         res.write(' ')
 
         // Wait another 15 seconds
@@ -279,13 +276,13 @@ const BloombergHeroku = {
 const BloombergOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  headless: true,
+  headless: false,
   slowMo: 10,
   defaultViewport: null,
-  args: [
-    '--disable-web-security',
-    '--disable-features=IsolateOrigins,site-per-process',
-  ],
+  // args: [
+  //   '--disable-web-security',
+  //   '--disable-features=IsolateOrigins,site-per-process',
+  // ],
 }
 
 // eslint-disable-next-line max-statements
