@@ -424,20 +424,6 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
       obj.author = author
       motleyInfo.push(obj)
     }
-    // await page.click('#load-more')
-    // await page.waitForSelector('#page-2 > article')
-    // const articleTwo = await page.$$('#page-2 > article')
-    // for (let i = 0; i < articleTwo.length; i++) {
-    //   let obj = {}
-    //   let link = await articleTwo[i].$eval('a', (a) => a.getAttribute('href'))
-    //   obj.link = `https://www.fool.com${link}`
-    //   let author = await articleTwo[i].$eval(
-    //     '.story-date-author',
-    //     (el) => el.innerHTML
-    //   )
-    //   obj.author = author
-    // motleyInfo.push(obj)
-    // }
     if (!motleyInfo.length) {
       console.log('Unable to retrieve MotleyFool data')
       res.status(404).send('Unable to fetch data')
@@ -453,6 +439,76 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
     next(err)
   } finally {
     console.log('Inside tradingview finally, before browser close()')
+    await browser.close()
+  }
+})
+
+const SeekingHeroku = {
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+}
+
+const SeekingOptions = {
+  executablePath:
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: false,
+  slowMo: 10,
+  defaultViewport: {width: 1700, height: 768},
+}
+
+router.get('/seekingalpha/:ticker', async (req, res, next) => {
+  let browser
+  if (process.env.NODE_ENV === 'production') {
+    browser = await puppeteer.launch(SeekingHeroku)
+  } else {
+    browser = await puppeteer.launch(SeekingOptions)
+  }
+  try {
+    // const exchange = allStocks.find((stock) => {
+    //   return stock.Symbol === req.params.ticker.toUpperCase()
+    // }).exchange
+    let ticker = req.params.ticker.toUpperCase()
+
+    const page = await browser.newPage()
+    await page.goto(`https://seekingalpha.com/symbol/${ticker}`)
+    if (process.env.NODE_ENV !== 'production') {
+      page.setDefaultTimeout(10000)
+    }
+    console.log(page.url())
+    await page.waitForTimeout(1500)
+    const articles = await page.$$('._aa29a-2g3Uj._ada04-25IZI article')
+    console.log(articles.length)
+    // await page.waitForTimeout(25000)
+    const seekingInfo = []
+    for (let i = 0; i < articles.length; i++) {
+      let obj = {}
+      obj.title = await articles[i].$eval('._e19e6-3bit-._ada04-30Da6', (el) =>
+        el.getAttribute('aria-label')
+      )
+      let link = await articles[i].$eval('._e19e6-3bit-._ada04-30Da6', (el) =>
+        el.getAttribute('href')
+      )
+      obj.link = `https://seekingalpha.com/${link}`
+      obj.date = await articles[i].$eval(
+        '._e19e6-bAtK_._e19e6-uJXfc',
+        (el) => el.innerHTML
+      )
+      seekingInfo.push(obj)
+    }
+    if (!seekingInfo.length) {
+      console.log('Unable to retrieve MotleyFool data')
+      res.status(404).send('Unable to fetch data')
+    } else if (process.env.NODE_ENV === 'production') {
+      console.log('Successfully retrieved Motleyfool data')
+      res.write(JSON.stringify(seekingInfo))
+      res.end()
+    } else {
+      console.log('Successfully retrieved Motleyfool data')
+      res.send(seekingInfo)
+    }
+  } catch (err) {
+    next(err)
+  } finally {
+    console.log('Inside SeekingAlpha finally, before browser close()')
     await browser.close()
   }
 })
