@@ -463,9 +463,6 @@ router.get('/seekingalpha/:ticker', async (req, res, next) => {
     browser = await puppeteer.launch(SeekingOptions)
   }
   try {
-    // const exchange = allStocks.find((stock) => {
-    //   return stock.Symbol === req.params.ticker.toUpperCase()
-    // }).exchange
     let ticker = req.params.ticker.toUpperCase()
 
     const page = await browser.newPage()

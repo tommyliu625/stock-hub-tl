@@ -4,6 +4,8 @@ const GET_FINVIZ = 'GET_FINVIZ'
 const GET_WSJ = 'GET_WSJ'
 const GET_MOTLEYFOOL = 'GET_MOTLEYFOOL'
 const RESET_MOTLEYFOOL = 'RESET_MOTLEYFOOL'
+const GET_SEEKINGALPHA = 'GET_SEEKINGALPHA'
+const RESET_SEEKINGALPHA = 'RESET_SEEKINGALPHA'
 const GET_TRADINGVIEW = 'GET_TRADINGVIEW'
 const RESET_TRADINGVIEW = 'RESET_TRADINGVIEW'
 const GET_BLOOMBERG = 'GET_BLOOMBERG'
@@ -34,6 +36,20 @@ export const resetMotleyFool = () => {
   return {
     type: RESET_MOTLEYFOOL,
     motleyFoolNews: [],
+  }
+}
+
+export const setSeekingAlpha = (news) => {
+  return {
+    type: GET_SEEKINGALPHA,
+    seekingAlphaNews: news,
+  }
+}
+
+export const resetSeekingAlpha = () => {
+  return {
+    type: RESET_SEEKINGALPHA,
+    seekingAlphaNews: [],
   }
 }
 
@@ -112,6 +128,31 @@ export const fetchMotleyFoolNews = (ticker) => {
   }
 }
 
+export const fetchSeekingAlphaNews = (ticker) => {
+  return async (dispatch) => {
+    try {
+      const {data} = await axios.get(`/api/stocknews/seekingalpha/${ticker}`)
+      console.log(data)
+      if (!Array.isArray(data)) {
+        let newData = data.slice(1)
+        dispatch(setSeekingAlpha(JSON.parse(newData)))
+      } else {
+        dispatch(setSeekingAlpha(data))
+      }
+      return {
+        Successful: {SeekingAlpha: 'Successfully received SeekingAlpha data'},
+      }
+    } catch (err) {
+      dispatch(
+        setSeekingAlpha({
+          error: `Unable to fetch SeekingAlpha data for ${ticker}.`,
+        })
+      )
+      return err.response.data
+    }
+  }
+}
+
 export const fetchTradingViewNews = (ticker) => {
   return async (dispatch) => {
     try {
@@ -168,6 +209,7 @@ export const getAllNews = (ticker) => {
         dispatch(fetchFinvizNews(ticker)),
         dispatch(fetchWSJNews(ticker)),
         dispatch(fetchMotleyFoolNews(ticker)),
+        dispatch(fetchSeekingAlphaNews(ticker)),
         dispatch(fetchTradingViewNews(ticker)),
         dispatch(fetchBloomberg(ticker)),
       ])
@@ -183,6 +225,7 @@ const initState = {
   finviz: [],
   WSJ: [],
   MotleyFool: [],
+  SeeingAlpha: [],
   TradingView: [],
   Bloomberg: [],
 }
@@ -198,6 +241,10 @@ export default (state = initState, action) => {
       return {...state, MotleyFool: action.motleyFoolNews}
     case RESET_MOTLEYFOOL:
       return {...state, MotleyFool: []}
+    case GET_SEEKINGALPHA:
+      return {...state, SeekingAlpha: action.seekingAlphaNews}
+    case RESET_SEEKINGALPHA:
+      return {...state, SeekingAlpha: []}
     case GET_TRADINGVIEW:
       return {...state, TradingView: action.tradingViewNews}
     case RESET_TRADINGVIEW:

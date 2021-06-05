@@ -6,6 +6,7 @@ import WSJComponent from './WSJComponent'
 import TradingViewComponent from './TradingViewComponent'
 import BloombergComponent from './BloombergComponent'
 import MotleyFoolComponent from './MotleyFoolComponent'
+import SeekingAlphaComponent from './SeekingAlphaComponent'
 
 class StockNews extends React.Component {
   constructor(props) {
@@ -57,6 +58,23 @@ class StockNews extends React.Component {
       } else {
         selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
           return <MotleyFoolComponent links={links} />
+        })
+      }
+    } else if (selectedCategory === 'SeekingAlpha') {
+      if (!Array.isArray(stocknews[selectedCategory])) {
+        selectedNewsJSX = <div>{stocknews[selectedCategory].error}</div>
+      } else if (!stocknews.SeekingAlpha.length) {
+        selectedNewsJSX = (
+          <div className="seekingalpha-detail-div">
+            <div>
+              Grabbing SeekingAlpha data. This may take up to 10 seconds...{' '}
+              <img src="loading-spinner.gif" width="50px" height="50px" />
+            </div>
+          </div>
+        )
+      } else {
+        selectedNewsJSX = stocknews[selectedCategory].map((links, i) => {
+          return <SeekingAlphaComponent info={links} />
         })
       }
     } else if (selectedCategory === 'TradingView') {
