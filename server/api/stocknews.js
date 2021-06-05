@@ -50,7 +50,8 @@ const extendTimeoutMiddleware = (req, res, next) => {
   } else if (
     !req.url.includes('/bloomberg') &&
     !req.url.includes('/tradingview') &&
-    !req.url.includes('/motleyfool')
+    !req.url.includes('/motleyfool') &&
+    !req.url.includes('/seekingalpha')
   ) {
     console.log('req.url', req.url)
     next()
@@ -219,8 +220,6 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
     console.log(articles.length)
     for (let i = 2; i < articles.length; i++) {
       await page.click(`.js-news-widget-content :nth-child(${i + 1})`)
-      // console.log(i)
-      // await page.waitForSelector('.dialog-3Q8J4Pu0')
       let timeDate = await page.$('.container-WM_9Aksw')
       let title = await page.$('.title-2-Un7Upl')
       let body = await page.$('.body-2-Un7Upl')
@@ -241,11 +240,8 @@ router.get('/tradingview/:ticker', async (req, res, next) => {
         articleInfo.body = body.join(' ')
 
         tradingViewInfo.push(articleInfo)
-        // console.log(articleInfo)
         await page.waitForTimeout(25)
         await page.keyboard.press('Escape')
-        // console.log(articleInfo.timeDate)
-        // console.log(articleInfo.title)
       }
       // await page.screenshot({path: 'example.png'})
       // await browser.close()
@@ -348,13 +344,9 @@ router.get('/bloomberg/:ticker', async (req, res, next) => {
         obj.headline = headline
         obj.link = link
         obj.date = date
-        console.log(obj)
         bloombergInfo.push(obj)
       }
     }
-    // await page.screenshot({path: 'example.png'})
-    // await browser.close()
-    // console.log('bloomberg info', bloombergInfo)
     if (bloombergInfo.length === 0) {
       console.log('Unable to retrieve bloomberg data')
       res.status(404).send('Error grabbing data')
@@ -420,7 +412,6 @@ router.get('/motleyfool/:ticker', async (req, res, next) => {
         '.story-date-author',
         (el) => el.innerHTML
       )
-      console.log(i, author)
       obj.author = author
       motleyInfo.push(obj)
     }
@@ -450,7 +441,7 @@ const SeekingHeroku = {
 const SeekingOptions = {
   executablePath:
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  headless: false,
+  headless: true,
   slowMo: 10,
   defaultViewport: {width: 1700, height: 768},
 }

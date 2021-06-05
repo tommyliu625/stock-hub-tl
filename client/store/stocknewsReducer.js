@@ -225,7 +225,7 @@ const initState = {
   finviz: [],
   WSJ: [],
   MotleyFool: [],
-  SeeingAlpha: [],
+  SeekingAlpha: [],
   TradingView: [],
   Bloomberg: [],
 }

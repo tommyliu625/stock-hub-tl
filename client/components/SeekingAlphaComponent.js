@@ -5,9 +5,9 @@ export default (props) => {
   const {info} = props
   return (
     <div className="seekingalpha-detail-div">
-      <h4>{info.title}</h4>
+      <h3>{info.title}</h3>
       <a href={info.link}>{info.link}</a>
-      <h6>{info.date}</h6>
+      <h5>{info.date}</h5>
     </div>
   )
 }
