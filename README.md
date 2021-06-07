@@ -1,6 +1,6 @@
 # Stock-Hub-TL
 
-Stock-Hub-TL is an all-in-one application to view stock charts and stock news. The user is able to view the price action of a stock with different time periods and time intervals while also having the ability to retrieve stock articles from multiple media outlets such as Finviz, WSJ, Motley Fool, TradingView and Bloomberg. 
+Stock-Hub-TL is an all-in-one application to view stock charts and stock news. The user is able to view the price action of a stock with different time periods and time intervals while also having the ability to retrieve stock articles from multiple media outlets such as Finviz, WSJ, Motley Fool, TradingView and Seeking Alpha. 
 
 ## Deployed App
 
